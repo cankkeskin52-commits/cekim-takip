@@ -369,8 +369,31 @@ let incomeYear=new Date().getFullYear();
 let selectedStatus='pending';
 let editingId=null;
 
+/* ── CLENSMEDYA MAYIS 2026 VERİSİ ── */
+const DEFAULT_DATA=[
+  /* ÇEKİMLER */
+  {id:'c1',name:'Selen Hanım',phone:'',date:'2026-05-14',amount:5000,location:'Beyoğlu',status:'pending',type:'Periyodik',notes:'FAT-001'},
+  {id:'c2',name:'Selen Hanım',phone:'',date:'2026-05-18',amount:5000,location:'Seyrantepe Summart',status:'pending',type:'Periyodik',notes:'FAT-002'},
+  {id:'c3',name:'Can Bireysel',phone:'',date:'2026-05-22',amount:25000,location:'',status:'pending',type:'Periyodik',notes:'FAT-003'},
+  {id:'c4',name:'Yasin Jora',phone:'',date:'2026-05-15',amount:4000,location:'Ofis Oussama',status:'pending',type:'Periyodik',notes:'FAT-004'},
+  {id:'c5',name:'Yasin Jora',phone:'',date:'2026-05-18',amount:6000,location:'Kora Can',status:'pending',type:'Periyodik',notes:'FAT-005'},
+  {id:'c6',name:'Doğum Günü (Oussama)',phone:'',date:'2026-05-15',amount:10000,location:'Oussama Fotoğraf',status:'paid',type:'Tek Seferlik',notes:'FAT-006'},
+  {id:'c7',name:'ŞEYMA EDİT',phone:'',date:'2026-05-01',amount:2500,location:'',status:'paid',type:'Tek Seferlik',notes:'FAT-007 · Tamamlandı'},
+  /* SABİT MÜŞTERİLER — Aylık */
+  {id:'s1',name:'Arc CO COFFE',phone:'0532 111 22 33',date:'2026-05-01',amount:15000,location:'',status:'pending',type:'Sabit',notes:'Instagram takibi'},
+  {id:'s2',name:'Caffestudio',phone:'0533 222 33 44',date:'2026-05-01',amount:15000,location:'',status:'pending',type:'Sabit',notes:'Instagram takibi'},
+  {id:'s3',name:'Metin Katya',phone:'0534 333 44 55',date:'2026-05-01',amount:30000,location:'',status:'pending',type:'Sabit',notes:'Güzellik merkezi'},
+  {id:'s4',name:'Sespresso',phone:'0535 444 55 66',date:'2026-05-01',amount:50000,location:'',status:'pending',type:'Sabit',notes:'Kızının doğum günü notu'},
+  /* GMNDİJİTAL — Kurgu */
+  {id:'g1',name:'Gonca Soyuduru — Kurgu',phone:'',date:'2026-05-01',amount:750,location:'',status:'pending',type:'Kurgu',notes:'GMNDİJİTAL · Dermatoloji · 1 kurgu'}
+];
+
 function load(){
-  try{data=JSON.parse(localStorage.getItem(STORE)||'[]');}catch{data=[];}
+  try{
+    const stored=localStorage.getItem(STORE);
+    if(stored){data=JSON.parse(stored);}
+    else{data=DEFAULT_DATA;save();}
+  }catch{data=[];}
 }
 function save(){
   localStorage.setItem(STORE,JSON.stringify(data));
@@ -486,7 +509,10 @@ function renderList(){
         ${c.location?`<div class="cc-info">📍 ${c.location}</div>`:''}
       </div>
       <div class="cc-bottom">
-        <div class="cc-note">${c.notes||''}</div>
+        <div style="display:flex;gap:5px;align-items:center;flex:1;min-width:0;">
+          ${c.type?`<span style="font-size:9px;background:rgba(45,224,204,0.08);border:0.5px solid rgba(45,224,204,0.2);color:var(--teal);padding:2px 7px;border-radius:20px;white-space:nowrap;">${c.type}</span>`:''}
+          <div class="cc-note">${c.notes||''}</div>
+        </div>
         <span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'⏳ Bekliyor':'❌ İptal'}</span>
       </div>
     </div>`).join('');
