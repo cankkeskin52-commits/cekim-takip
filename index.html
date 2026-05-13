@@ -664,26 +664,14 @@ textarea.fi{resize:none;height:72px;}
     <div class="fb">
       <div style="background:var(--bg3);border:.5px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
         <div style="font-size:11px;color:var(--text2);line-height:1.6;">
-          İki telefonda aynı <strong style="color:var(--teal);">çalışma kodu</strong> ile aynı verileri eş zamanlı görün.<br>
-          Ücretsiz Firebase hesabı gereklidir.<br>
-          <a href="https://console.firebase.google.com" style="color:var(--teal);" target="_blank">console.firebase.google.com →</a>
+          İki telefonda aynı <strong style="color:var(--teal);">çalışma kodu</strong> girerek verileri eş zamanlı paylaşın.<br>
+          Bağlantı hazır — sadece kod girmeniz yeterli. 🚀
         </div>
       </div>
-      <div class="fg"><label class="fl">Firebase API Key</label><input class="fi" id="f-sync-key" type="text" placeholder="AIzaSy..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></div>
-      <div class="fg"><label class="fl">Firebase Project ID</label><input class="fi" id="f-sync-pid" type="text" placeholder="projem-12345" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></div>
-      <div class="fg"><label class="fl">Çalışma Alanı Kodu (her iki telefonda aynı)</label><input class="fi" id="f-sync-code" type="text" placeholder="CLENS1" maxlength="8" style="text-transform:uppercase;letter-spacing:.25em;font-size:20px;font-weight:800;text-align:center;" autocomplete="off" autocorrect="off" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="fg"><label class="fl" style="text-align:center;width:100%;font-size:13px;">Çalışma Alanı Kodu (her iki telefonda aynı)</label><input class="fi" id="f-sync-code" type="text" placeholder="CLENS1" maxlength="8" style="text-transform:uppercase;letter-spacing:.25em;font-size:24px;font-weight:800;text-align:center;" autocomplete="off" autocorrect="off" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div>
       <button class="btn-p" onclick="connectSync()">🔗 Bağlan &amp; Senkronize Et</button>
       <button class="btn-d" id="btn-sync-disconnect" style="display:none;margin-top:8px;" onclick="disconnectSync()">Bağlantıyı Kes</button>
       <div id="sync-status-msg" style="margin-top:12px;font-size:12px;text-align:center;min-height:18px;"></div>
-      <div style="margin-top:16px;padding-top:14px;border-top:.5px solid var(--border);">
-        <div style="font-size:10px;color:var(--text3);line-height:1.7;">
-          <strong style="color:var(--text2);">Firebase Kurulumu (1 dakika):</strong><br>
-          1. console.firebase.google.com → Yeni proje oluştur<br>
-          2. Firestore Database → Oluştur → Test modunda başlat<br>
-          3. Proje Ayarları → Web uygulaması ekle → API Key &amp; Project ID kopyala<br>
-          4. İki telefonda da aynı kodu gir, Bağlan'a bas
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -1457,17 +1445,19 @@ async function loadFirebaseSDK(){
   }catch(e){setSyncMsg('SDK yüklenemedi. İnternet bağlantısını kontrol et.','var(--red)');return false;}
 }
 
+// Hardcoded Firebase credentials — no user input needed
+const FB_API_KEY='AIzaSyAeYOc5tufXdy2DVt1Fdxmq3j1PP4-vpeE';
+const FB_PROJECT_ID='clensmedya-a08a5';
+
 async function connectSync(){
-  const apiKey=document.getElementById('f-sync-key').value.trim();
-  const projectId=document.getElementById('f-sync-pid').value.trim();
   const code=document.getElementById('f-sync-code').value.trim().toUpperCase();
-  if(!apiKey||!projectId||!code){setSyncMsg('Tüm alanları doldurun!','var(--red)');return;}
+  if(!code){setSyncMsg('Çalışma kodu girin!','var(--red)');return;}
   setSyncMsg('Bağlanıyor…','var(--gold)');setSyncDot('syncing');
   const ok=await loadFirebaseSDK();
   if(!ok)return;
   try{
     if(!firebase.apps.length){
-      firebase.initializeApp({apiKey,authDomain:projectId+'.firebaseapp.com',projectId});
+      firebase.initializeApp({apiKey:FB_API_KEY,authDomain:FB_PROJECT_ID+'.firebaseapp.com',projectId:FB_PROJECT_ID});
     }
     syncDb=firebase.firestore();
     syncCode=code;
@@ -1494,7 +1484,7 @@ async function connectSync(){
       setSyncDot('ok');
     },err=>{setSyncDot('err');setSyncMsg('Bağlantı hatası: '+err.message,'var(--red)');});
     // Ayarları kaydet
-    localStorage.setItem('cm_sync_cfg',JSON.stringify({apiKey,projectId,code}));
+    localStorage.setItem('cm_sync_cfg',JSON.stringify({code}));
     setSyncDot('ok');
     setSyncMsg('✅ Bağlandı! Kod: '+code,'var(--teal)');
     document.getElementById('btn-sync-disconnect').style.display='block';
@@ -1528,9 +1518,7 @@ function disconnectSync(){
 async function autoReconnectSync(){
   try{
     const cfg=JSON.parse(localStorage.getItem('cm_sync_cfg')||'null');
-    if(!cfg||!cfg.apiKey||!cfg.projectId||!cfg.code)return;
-    document.getElementById('f-sync-key').value=cfg.apiKey;
-    document.getElementById('f-sync-pid').value=cfg.projectId;
+    if(!cfg||!cfg.code)return;
     document.getElementById('f-sync-code').value=cfg.code;
     await connectSync();
   }catch{}
