@@ -540,7 +540,7 @@ textarea.fi{resize:none;height:72px;}
       <div class="fg"><label class="fl">Kategori</label>
         <select class="fi" id="f-fin-cat">
           <optgroup label="Gelir"><option value="Çekim Geliri">Çekim Geliri</option><option value="Proje Geliri">Proje Geliri</option><option value="Kurgu Geliri">Kurgu Geliri</option><option value="Diğer Gelir">Diğer Gelir</option></optgroup>
-          <optgroup label="Gider"><option value="Ekipman">Ekipman</option><option value="Ulaşım">Ulaşım</option><option value="Konaklama">Konaklama</option><option value="Kira/Ofis">Kira/Ofis</option><option value="Maaş/Ödeme">Maaş/Ödeme</option><option value="Yazılım">Yazılım</option><option value="Diğer Gider">Diğer Gider</option></optgroup>
+          <optgroup label="Gider"><option value="Kira">Kira</option><option value="Fatura">Fatura (Elektrik/Su/İnternet)</option><option value="Bireysel Ödeme">Bireysel Ödeme</option><option value="Ekipman">Ekipman</option><option value="Ulaşım">Ulaşım</option><option value="Konaklama">Konaklama</option><option value="Maaş/Ödeme">Maaş/Ödeme</option><option value="Yazılım">Yazılım/Abonelik</option><option value="Vergi/SGK">Vergi / SGK</option><option value="Diğer Gider">Diğer Gider</option></optgroup>
         </select>
       </div>
       <div class="fg"><label class="fl">Notlar</label><textarea class="fi" id="f-fin-notes" placeholder="Ek bilgi..."></textarea></div>
@@ -808,15 +808,15 @@ function renderOzet(){
   },0);
   const pendingRemaining=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
   const hasPartial=pend.some(c=>Number(c.paidAmount||0)>0);
-  // Tüm zamanlardaki kalan tahsilat (tüm bekleyen + kısmi)
-  const allPending=cekimler.filter(c=>c.status==='pending');
-  const totalKalan=allPending.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
-  const totalKalanCount=allPending.length;
+  // Bu ay giderler (finanslar'dan expense olanlar)
+  const mGider=finanslar.filter(f=>{const d=pDate(f.date);return d&&d.getMonth()===ozetM&&d.getFullYear()===ozetY&&f.type==='expense';});
+  const sumGider=mGider.reduce((s,f)=>s+Number(f.amount||0),0);
+  const net=sumReceived(mc)-sumGider;
   document.getElementById('dash-grid').innerHTML=`
     <div class="dc c-teal"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val teal">${fmt(sumReceived(mc))}</div><div class="dc-sub">${paid.length} tam + ${pend.filter(c=>c.paidAmount>0).length} kısmi</div><div class="dc-ico">📅</div></div>
     <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${pend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
-    <div class="dc c-red" style="--ac:rgba(167,139,250,.07);"><div class="dc-lbl">Toplam Kalan Tahsilat</div><div class="dc-val" style="color:var(--purple)">${fmt(totalKalan)}</div><div class="dc-sub">${totalKalanCount} çekimden bekliyor</div><div class="dc-ico">💼</div></div>
-    <div class="dc c-red"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val red">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
+    <div class="dc c-red"><div class="dc-lbl">Bu Ay Gider</div><div class="dc-val red">${fmt(sumGider)}</div><div class="dc-sub">${mGider.length} kalem · Net ${net>=0?'+':''}${fmt(net)}</div><div class="dc-ico">💸</div></div>
+    <div class="dc" style="--ac:rgba(45,224,204,.07);"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val teal">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
   const today=todayStr();
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const ul=document.getElementById('upcoming-list');
@@ -1165,7 +1165,7 @@ function renderFinans(){
   document.getElementById('fin-net').textContent=fmt(Math.abs(net));
   document.getElementById('fin-net').className='fin-net-val '+(net>=0?'pos':'neg');
   const items=mf.filter(f=>f.type===finType).sort((a,b)=>b.date.localeCompare(a.date));
-  const CAT_ICONS={'Çekim Geliri':'📷','Proje Geliri':'🎬','Kurgu Geliri':'✂️','Diğer Gelir':'💰','Ekipman':'🎥','Ulaşım':'🚗','Konaklama':'🏨','Kira/Ofis':'🏢','Maaş/Ödeme':'💳','Yazılım':'💻','Diğer Gider':'💸'};
+  const CAT_ICONS={'Çekim Geliri':'📷','Proje Geliri':'🎬','Kurgu Geliri':'✂️','Diğer Gelir':'💰','Kira':'🏢','Fatura':'💡','Bireysel Ödeme':'👤','Ekipman':'🎥','Ulaşım':'🚗','Konaklama':'🏨','Kira/Ofis':'🏢','Maaş/Ödeme':'💳','Yazılım':'💻','Yazılım/Abonelik':'💻','Vergi/SGK':'🏛️','Diğer Gider':'💸'};
   const el=document.getElementById('fin-list');
   el.innerHTML=items.length?items.map(f=>`
     <div class="fin-item" onclick="editFinans('${f.id}')">
