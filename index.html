@@ -41,11 +41,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .hdr-brand{display:flex;align-items:baseline;gap:6px;}
 .hdr-title{font-size:17px;font-weight:700;letter-spacing:-.4px;color:var(--teal);}
 .hdr-sub{font-size:10px;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;}
-.hdr-add{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#080d1a;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 16px rgba(45,224,204,.35);}
+.hdr-add{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#080d1a;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 16px rgba(45,224,204,.35);touch-action:manipulation;-webkit-touch-callout:none;}
+.sync-dot{width:9px;height:9px;border-radius:50%;background:var(--text3);flex-shrink:0;cursor:pointer;transition:background .3s;}
+.sync-dot.ok{background:var(--teal);box-shadow:0 0 6px rgba(45,224,204,.5);}
+.sync-dot.err{background:var(--red);}
+.sync-dot.syncing{background:var(--gold);}
 
 /* ── BOTTOM NAV (6 tabs) ── */
-.bnav{display:grid;grid-template-columns:repeat(6,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);padding-bottom:var(--sb);}
-.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 7px;cursor:pointer;}
+.bnav{display:grid;grid-template-columns:repeat(6,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 calc(7px + var(--sb));cursor:pointer;}
 .bnav-icon{font-size:18px;}
 .bnav-label{font-size:8.5px;color:var(--text2);transition:color .2s;}
 .bnav-item.active .bnav-label{color:var(--teal);}
@@ -93,6 +97,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .badge.paid{background:var(--green2);color:var(--green);}
 .badge.pending{background:var(--gold2);color:var(--gold);}
 .badge.cancelled{background:var(--red2);color:var(--red);}
+.badge.partial{background:var(--blue2);color:var(--blue);}
+.od-progress{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:6px;}
+.od-progress-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:2px;transition:width .4s;}
+.od-remaining{font-size:10px;color:var(--text2);margin-top:3px;}
+.pay-quick{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--blue);background:var(--blue2);border:.5px solid rgba(96,165,250,.25);border-radius:8px;padding:3px 8px;cursor:pointer;touch-action:manipulation;white-space:nowrap;}
 .type-tag{display:inline-flex;align-items:center;font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;background:var(--teal2);border:.5px solid rgba(45,224,204,.2);color:var(--teal);}
 
 /* ── TAKVİM ── */
@@ -172,7 +181,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .prj-progress-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:2px;transition:width .5s;}
 .prj-add-btn{margin:14px 14px 0;padding:12px;background:var(--teal2);border:.5px solid rgba(45,224,204,.25);border-radius:12px;color:var(--teal);font-size:13px;font-weight:600;text-align:center;cursor:pointer;}
 /* + gün butonu */
-.day-add-btn{width:30px;height:30px;background:var(--teal2);border:.5px solid rgba(45,224,204,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--teal);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;}
+.day-add-btn{width:30px;height:30px;background:var(--teal2);border:.5px solid rgba(45,224,204,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--teal);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-touch-callout:none;}
 .day-add-btn:active{background:var(--teal3);}
 
 /* ── FİNANS ── */
@@ -256,7 +265,7 @@ textarea.fi{resize:none;height:72px;}
 .ku-doctor-stats{text-align:right;flex-shrink:0;}
 .ku-doctor-count{font-size:18px;font-weight:800;color:var(--purple);}
 .ku-doctor-price{font-size:10px;color:var(--text2);margin-top:1px;}
-.ku-quick-add{width:30px;height:30px;background:var(--purple2);border:.5px solid rgba(167,139,250,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--purple);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;}
+.ku-quick-add{width:30px;height:30px;background:var(--purple2);border:.5px solid rgba(167,139,250,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--purple);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-touch-callout:none;}
 .ku-quick-add:active{background:rgba(167,139,250,.25);}
 .ku-entries{border-top:.5px solid var(--border);}
 .ku-entry-row{padding:10px 14px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;}
@@ -272,7 +281,7 @@ textarea.fi{resize:none;height:72px;}
   <div class="hdr">
     <div class="hdr-brand">
       <!-- C monogram — viewBox 100x100, tam sığdırılmış -->
-      <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;pointer-events:none;">
         <defs>
           <linearGradient id="hcg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#3df0dc"/>
@@ -289,7 +298,10 @@ textarea.fi{resize:none;height:72px;}
         <div class="hdr-sub">Prodüksiyon</div>
       </div>
     </div>
-    <div class="hdr-add" onclick="openAddMenu()">+</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="sync-dot" id="sync-dot" onclick="openModal('modal-sync')" title="Senkronizasyon"></div>
+      <div class="hdr-add" onclick="openAddMenu()">+</div>
+    </div>
   </div>
 
   <!-- PAGES -->
@@ -457,6 +469,28 @@ textarea.fi{resize:none;height:72px;}
         </div>
       </div>
       <div class="fg"><label class="fl">Lokasyon</label><input class="fi" id="f-loc" type="text" placeholder="Şehir / Mekan" autocomplete="off"></div>
+      <div class="fg">
+        <label class="fl">Kısmi Ödeme</label>
+        <div id="f-paid-summary" style="display:none;margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;text-align:center;">
+            <div style="background:var(--bg3);border-radius:10px;padding:8px 4px;">
+              <div style="font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Toplam</div>
+              <div id="fps-total" style="font-size:13px;font-weight:800;color:var(--text);"></div>
+            </div>
+            <div style="background:var(--green2);border-radius:10px;padding:8px 4px;">
+              <div style="font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Alınan</div>
+              <div id="fps-paid" style="font-size:13px;font-weight:800;color:var(--green);"></div>
+            </div>
+            <div style="background:var(--gold2);border-radius:10px;padding:8px 4px;">
+              <div style="font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Kalan</div>
+              <div id="fps-rem" style="font-size:13px;font-weight:800;color:var(--gold);"></div>
+            </div>
+          </div>
+          <div class="od-progress" style="height:5px;margin-bottom:4px;"><div class="od-progress-bar" id="fps-bar" style="width:0%"></div></div>
+        </div>
+        <input class="fi" id="f-paid" type="number" placeholder="Toplam alınan tutar (₺)" inputmode="numeric" oninput="updatePaidPreview()">
+        <div id="f-paid-preview" style="font-size:11px;margin-top:5px;min-height:16px;"></div>
+      </div>
       <div class="fg"><label class="fl">Ödeme Durumu</label>
         <div class="status-row">
           <div class="st-opt sel-pending" data-st="pending" onclick="selSt(this)"><div class="st-icon">⏳</div><div class="st-lbl">Bekliyor</div></div>
@@ -570,6 +604,76 @@ textarea.fi{resize:none;height:72px;}
   </div>
 </div>
 
+<!-- QUICK PAY MODAL -->
+<div class="ov" id="modal-qpay" onclick="closeModal('modal-qpay',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">💳 Ödeme Al</div>
+        <div id="qp-name" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
+      </div>
+      <div class="modal-close" onclick="closeModal('modal-qpay')">✕</div>
+    </div>
+    <div class="fb">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;text-align:center;">
+        <div style="background:var(--bg3);border-radius:12px;padding:10px 6px;">
+          <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Toplam</div>
+          <div id="qp-total" style="font-size:15px;font-weight:800;color:var(--text);"></div>
+        </div>
+        <div style="background:var(--green2);border-radius:12px;padding:10px 6px;">
+          <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Alınan</div>
+          <div id="qp-already" style="font-size:15px;font-weight:800;color:var(--green);"></div>
+        </div>
+        <div style="background:var(--gold2);border-radius:12px;padding:10px 6px;">
+          <div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Kalan</div>
+          <div id="qp-remaining" style="font-size:15px;font-weight:800;color:var(--gold);"></div>
+        </div>
+      </div>
+      <div id="qp-bar-wrap" style="display:none;margin-bottom:14px;">
+        <div class="od-progress" style="height:6px;"><div class="od-progress-bar" id="qp-bar" style="width:0%"></div></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Şu an alınan tutar (₺)</label>
+        <input class="fi" id="f-qp-amt" type="number" inputmode="numeric" style="font-size:22px;font-weight:800;text-align:center;padding:14px;" onkeydown="if(event.key==='Enter')saveQuickPay()">
+      </div>
+      <button class="btn-p" onclick="saveQuickPay()">✅ Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC MODAL -->
+<div class="ov" id="modal-sync" onclick="closeModal('modal-sync',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr"><div class="modal-title">🔄 Eş Zamanlı Kullanım</div><div class="modal-close" onclick="closeModal('modal-sync')">✕</div></div>
+    <div class="fb">
+      <div style="background:var(--bg3);border:.5px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text2);line-height:1.6;">
+          İki telefonda aynı <strong style="color:var(--teal);">çalışma kodu</strong> ile aynı verileri eş zamanlı görün.<br>
+          Ücretsiz Firebase hesabı gereklidir.<br>
+          <a href="https://console.firebase.google.com" style="color:var(--teal);" target="_blank">console.firebase.google.com →</a>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Firebase API Key</label><input class="fi" id="f-sync-key" type="text" placeholder="AIzaSy..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></div>
+      <div class="fg"><label class="fl">Firebase Project ID</label><input class="fi" id="f-sync-pid" type="text" placeholder="projem-12345" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></div>
+      <div class="fg"><label class="fl">Çalışma Alanı Kodu (her iki telefonda aynı)</label><input class="fi" id="f-sync-code" type="text" placeholder="CLENS1" maxlength="8" style="text-transform:uppercase;letter-spacing:.25em;font-size:20px;font-weight:800;text-align:center;" autocomplete="off" autocorrect="off" autocapitalize="characters" oninput="this.value=this.value.toUpperCase()"></div>
+      <button class="btn-p" onclick="connectSync()">🔗 Bağlan &amp; Senkronize Et</button>
+      <button class="btn-d" id="btn-sync-disconnect" style="display:none;margin-top:8px;" onclick="disconnectSync()">Bağlantıyı Kes</button>
+      <div id="sync-status-msg" style="margin-top:12px;font-size:12px;text-align:center;min-height:18px;"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:.5px solid var(--border);">
+        <div style="font-size:10px;color:var(--text3);line-height:1.7;">
+          <strong style="color:var(--text2);">Firebase Kurulumu (1 dakika):</strong><br>
+          1. console.firebase.google.com → Yeni proje oluştur<br>
+          2. Firestore Database → Oluştur → Test modunda başlat<br>
+          3. Proje Ayarları → Web uygulaması ekle → API Key &amp; Project ID kopyala<br>
+          4. İki telefonda da aynı kodu gir, Bağlan'a bas
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL MODAL -->
 <div class="ov" id="modal-detail" onclick="closeModal('modal-detail',event)">
   <div class="modal">
@@ -641,11 +745,11 @@ function load(){
   try{const d=localStorage.getItem(SK_KD); kurguDoctors=d?JSON.parse(d):DEF_KURGU_DOCTORS; if(!d)localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}catch{kurguDoctors=DEF_KURGU_DOCTORS;}
   try{const d=localStorage.getItem(SK_KE); kurguEntries=d?JSON.parse(d):DEF_KURGU_ENTRIES; if(!d)localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}catch{kurguEntries=DEF_KURGU_ENTRIES;}
 }
-function saveC(){localStorage.setItem(SK_C,JSON.stringify(cekimler));}
-function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));}
-function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));}
-function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}
-function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}
+function saveC(){localStorage.setItem(SK_C,JSON.stringify(cekimler));pushToFirebase();}
+function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));pushToFirebase();}
+function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));pushToFirebase();}
+function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));pushToFirebase();}
+function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));pushToFirebase();}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
 /* ══ UTILS ══ */
@@ -683,11 +787,19 @@ function renderOzet(){
   const mc=cekimler.filter(c=>{const d=pDate(c.date);return d&&d.getMonth()===ozetM&&d.getFullYear()===ozetY;});
   const paid=mc.filter(c=>c.status==='paid'), pend=mc.filter(c=>c.status==='pending');
   const sum=a=>a.reduce((s,c)=>s+Number(c.amount||0),0);
+  // Kısmi ödemeleri hesaba kat
+  const sumReceived=a=>a.reduce((s,c)=>{
+    if(c.status==='paid') return s+Number(c.amount||0);
+    return s+Number(c.paidAmount||0);
+  },0);
+  const pendingRemaining=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+  const hasPartial=pend.some(c=>Number(c.paidAmount||0)>0);
   const allPaid=cekimler.filter(c=>c.status==='paid');
+  const yearPaid=allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;});
   document.getElementById('dash-grid').innerHTML=`
-    <div class="dc c-teal"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val teal">${fmt(sum(paid))}</div><div class="dc-sub">${paid.length} çekim ödendi</div><div class="dc-ico">📅</div></div>
-    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(sum(pend))}</div><div class="dc-sub">${pend.length} çekim bekliyor</div><div class="dc-ico">⏳</div></div>
-    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi (Yıl)</div><div class="dc-val green">${fmt(sum(allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;})))}</div><div class="dc-sub">${allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;}).length} çekim</div><div class="dc-ico">✅</div></div>
+    <div class="dc c-teal"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val teal">${fmt(sumReceived(mc))}</div><div class="dc-sub">${paid.length} tam + ${pend.filter(c=>c.paidAmount>0).length} kısmi</div><div class="dc-ico">📅</div></div>
+    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${pend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
+    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi (Yıl)</div><div class="dc-val green">${fmt(sum(yearPaid))}</div><div class="dc-sub">${yearPaid.length} çekim</div><div class="dc-ico">✅</div></div>
     <div class="dc c-red"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val red">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
   const today=todayStr();
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
@@ -761,11 +873,13 @@ function renderOdemeler(){
   const pending=cekimler.filter(c=>c.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));
   const paid=cekimler.filter(c=>c.status==='paid').sort((a,b)=>b.date.localeCompare(a.date));
   const cancelled=cekimler.filter(c=>c.status==='cancelled').sort((a,b)=>b.date.localeCompare(a.date));
-  const sumPend=pending.reduce((s,c)=>s+Number(c.amount||0),0);
+  const sumPendRemaining=pending.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+  const sumPendReceived=pending.reduce((s,c)=>s+Number(c.paidAmount||0),0);
   const sumPaid=paid.reduce((s,c)=>s+Number(c.amount||0),0);
+  const partialCount=pending.filter(c=>Number(c.paidAmount||0)>0).length;
   document.getElementById('od-summary').innerHTML=`
-    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(sumPend)}</div><div class="dc-sub">${pending.length} ödeme bekliyor</div><div class="dc-ico">⏳</div></div>
-    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid)}</div><div class="dc-sub">${paid.length} ödeme alındı</div><div class="dc-ico">✅</div></div>`;
+    <div class="dc c-gold"><div class="dc-lbl">Kalan Bekleyen</div><div class="dc-val gold">${fmt(sumPendRemaining)}</div><div class="dc-sub">${pending.length} çekim · ${partialCount>0?fmt(sumPendReceived)+' alındı':'hiç alınmadı'}</div><div class="dc-ico">⏳</div></div>
+    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid+sumPendReceived)}</div><div class="dc-sub">${paid.length} tam + ${partialCount} kısmi</div><div class="dc-ico">✅</div></div>`;
   let html='';
   if(pending.length){
     html+=`<div class="od-section-lbl">⏳ Bekleyenler (${pending.length})</div><div class="od-list">${pending.map(c=>odCardHtml(c)).join('')}</div>`;
@@ -779,12 +893,36 @@ function renderOdemeler(){
   if(!cekimler.length) html='<div class="empty-s"><div class="ei">💳</div><div class="et">Henüz kayıt yok</div></div>';
   document.getElementById('odemeler-content').innerHTML=html;
 }
+function partialInfo(c){
+  const total=Number(c.amount||0);
+  const paid=Number(c.paidAmount||0);
+  if(c.status==='paid'||paid<=0||total<=0) return null;
+  return {paid, remaining:total-paid, pct:Math.min(100,Math.round(paid/total*100))};
+}
+function cBadge(c){
+  const pi=partialInfo(c);
+  if(pi&&pi.remaining>0) return`<span class="badge partial">Kısmen Ödendi</span>`;
+  if(c.status==='paid') return`<span class="badge paid">Ödendi</span>`;
+  if(c.status==='cancelled') return`<span class="badge cancelled">İptal</span>`;
+  return`<span class="badge pending">Bekliyor</span>`;
+}
 function odCardHtml(c){
   const d=pDate(c.date);
-  return`<div class="od-card ${c.status}" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
+  const pi=partialInfo(c);
+  const cardStatus=pi&&pi.remaining>0?'partial':c.status;
+  const borderColor=cardStatus==='partial'?'var(--blue)':cardStatus==='paid'?'var(--green)':cardStatus==='cancelled'?'var(--red)':'var(--gold)';
+  return`<div class="od-card ${c.status}" style="border-left-color:${borderColor};" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
     <div class="od-date-box"><div class="od-d">${d?d.getDate():'—'}</div><div class="od-m">${d?MS[d.getMonth()]:''}</div></div>
-    <div class="od-info"><div class="od-name">${c.name}</div><div class="od-type">${c.type||''}${c.location?' · '+c.location:''}</div></div>
-    <div class="od-right"><div class="od-amt">${fmt(c.amount)}</div><span class="badge ${c.status}" style="margin-top:4px;">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span></div>
+    <div class="od-info" style="min-width:0;flex:1;">
+      <div class="od-name">${c.name}</div>
+      <div class="od-type">${c.type||''}${c.location?' · '+c.location:''}</div>
+      ${pi&&pi.remaining>0?`<div class="od-progress"><div class="od-progress-bar" style="width:${pi.pct}%"></div></div><div class="od-remaining">Alınan ${fmt(pi.paid)} · Kalan ${fmt(pi.remaining)}</div>`:''}
+    </div>
+    <div class="od-right" style="flex-shrink:0;text-align:right;">
+      <div class="od-amt">${fmt(c.amount)}</div>
+      ${cBadge(c)}
+      ${c.status!=='paid'&&c.status!=='cancelled'?`<div style="margin-top:5px;"><span class="pay-quick" onclick="event.stopPropagation();quickPay('${c.id}')">+ Ödeme Al</span></div>`:''}
+    </div>
   </div>`;
 }
 
@@ -1031,6 +1169,34 @@ function setFormFinType(t){
 }
 
 /* ══ CEKİM CRUD ══ */
+function updatePaidPreview(){
+  const total=Number(document.getElementById('f-amount').value)||0;
+  const paid=Number(document.getElementById('f-paid').value)||0;
+  const el=document.getElementById('f-paid-preview');
+  const sum=document.getElementById('f-paid-summary');
+  if(!el)return;
+  if(paid>0&&total>0){
+    const rem=total-paid;
+    const pct=Math.min(100,Math.round(paid/total*100));
+    // özet kutu
+    if(sum){
+      sum.style.display='block';
+      document.getElementById('fps-total').textContent=fmt(total);
+      document.getElementById('fps-paid').textContent=fmt(paid);
+      document.getElementById('fps-rem').textContent=rem>0?fmt(rem):'Tam ✅';
+      document.getElementById('fps-rem').style.color=rem<=0?'var(--green)':'var(--gold)';
+      document.getElementById('fps-bar').style.width=pct+'%';
+      document.getElementById('fps-bar').parentElement.parentElement.querySelector('#fps-rem').parentElement.style.background=rem<=0?'var(--green2)':'var(--gold2)';
+    }
+    if(rem>0){el.textContent=`Kalan: ${fmt(rem)} — %${pct} alındı`;el.style.color='var(--blue)';}
+    else if(rem===0){el.textContent='✅ Tam ödeme — otomatik "Ödendi" olacak';el.style.color='var(--green)';}
+    else{el.textContent='⚠️ Alınan tutar toplamı aşıyor!';el.style.color='var(--red)';}
+  } else {
+    el.textContent='';
+    if(sum) sum.style.display='none';
+  }
+}
+
 function openAddCekim(){
   editingCid=null;
   document.getElementById('cekim-modal-title').textContent='Yeni Çekim';
@@ -1039,6 +1205,9 @@ function openAddCekim(){
   document.getElementById('f-phone').value='';
   document.getElementById('f-date').value=calY+'-'+(String(calM+1).padStart(2,'0'))+'-'+(String(NOW.getDate()).padStart(2,'0'));
   document.getElementById('f-amount').value='';
+  document.getElementById('f-paid').value='';
+  document.getElementById('f-paid-preview').textContent='';
+  document.getElementById('f-paid-summary').style.display='none';
   document.getElementById('f-loc').value='';
   document.getElementById('f-notes').value='';
   document.getElementById('f-type').value='Periyodik';
@@ -1059,6 +1228,8 @@ function editCekim(id){
     document.getElementById('f-phone').value=c.phone||'';
     document.getElementById('f-date').value=c.date||'';
     document.getElementById('f-amount').value=c.amount||'';
+    document.getElementById('f-paid').value=c.paidAmount||'';
+    updatePaidPreview();
     document.getElementById('f-loc').value=c.location||'';
     document.getElementById('f-notes').value=c.notes||'';
     document.getElementById('f-type').value=c.type||'Diğer';
@@ -1074,7 +1245,9 @@ function saveCekim(){
   if(!name){alert('Müşteri adı zorunlu!');return;}
   const date=document.getElementById('f-date').value;
   if(!date){alert('Tarih zorunlu!');return;}
-  const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,amount:Number(document.getElementById('f-amount').value)||0,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
+  const totalAmt=Number(document.getElementById('f-amount').value)||0;
+  const paidAmt=Number(document.getElementById('f-paid').value)||0;
+  const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,amount:totalAmt,paidAmount:paidAmt,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
   if(editingCid){const i=cekimler.findIndex(x=>x.id===editingCid);if(i>-1)cekimler[i]=c;}
   else cekimler.unshift(c);
   saveC();closeModal('modal-cekim');refreshAll();
@@ -1169,8 +1342,17 @@ function openDetail(c){
   document.getElementById('det-name').textContent=c.name;
   document.getElementById('det-edit-btn').onclick=()=>editCekim(c.id);
   const stLabel=c.status==='paid'?'✅ Ödendi':c.status==='pending'?'⏳ Bekliyor':'❌ İptal';
+  const pi=partialInfo(c);
   document.getElementById('det-body').innerHTML=`
     <div class="det-amt">${c.amount?fmt(c.amount):'Tutar belirtilmedi'}</div>
+    ${pi&&pi.remaining>0?`<div style="padding:0 18px 10px;">
+      <div class="od-progress" style="margin-bottom:6px;height:6px;"><div class="od-progress-bar" style="width:${pi.pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--blue);">✓ Alınan: ${fmt(pi.paid)}</span>
+        <span style="color:var(--gold);">⏳ Kalan: ${fmt(pi.remaining)}</span>
+      </div>
+      <div style="margin-top:8px;"><span class="pay-quick" style="font-size:11px;" onclick="closeModal('modal-detail');setTimeout(()=>editCekim('${c.id}'),300)">+ Ödeme Al / Güncelle</span></div>
+    </div>`:''}
     <div class="det-sec">
       <div class="det-row"><div class="det-ico">📅</div><div><div class="det-k">Çekim Tarihi</div><div class="det-v">${fDate(c.date)}</div></div></div>
       ${c.phone?`<div class="det-row"><div class="det-ico">📞</div><div><div class="det-k">Telefon</div><div class="det-v"><a href="tel:${c.phone}" style="color:var(--teal);text-decoration:none">${c.phone}</a></div></div></div>`:''}
@@ -1180,6 +1362,38 @@ function openDetail(c){
       ${c.notes?`<div class="det-row"><div class="det-ico">📝</div><div><div class="det-k">Notlar</div><div class="det-v">${c.notes}</div></div></div>`:''}
     </div>`;
   openModal('modal-detail');
+}
+
+/* ══ QUICK PAY ══ */
+let quickPayCid=null;
+function quickPay(cid){
+  const c=cekimler.find(x=>x.id===cid);if(!c)return;
+  quickPayCid=cid;
+  const total=Number(c.amount||0);
+  const already=Number(c.paidAmount||0);
+  const remaining=total-already;
+  document.getElementById('qp-name').textContent=c.name;
+  document.getElementById('qp-total').textContent=fmt(total);
+  document.getElementById('qp-already').textContent=fmt(already);
+  document.getElementById('qp-remaining').textContent=fmt(remaining);
+  document.getElementById('qp-bar').style.width=(already/total*100)+'%';
+  document.getElementById('qp-bar-wrap').style.display=already>0?'block':'none';
+  document.getElementById('f-qp-amt').value='';
+  document.getElementById('f-qp-amt').placeholder=fmt(remaining)+' (tamamı)';
+  openModal('modal-qpay');
+  setTimeout(()=>document.getElementById('f-qp-amt').focus(),400);
+}
+function saveQuickPay(){
+  const c=cekimler.find(x=>x.id===quickPayCid);if(!c)return;
+  const total=Number(c.amount||0);
+  const already=Number(c.paidAmount||0);
+  const newPmt=Number(document.getElementById('f-qp-amt').value)||0;
+  if(newPmt<=0){document.getElementById('f-qp-amt').focus();return;}
+  c.paidAmount=already+newPmt;
+  if(c.paidAmount>=total){c.paidAmount=total;c.status='paid';}
+  saveC();closeModal('modal-qpay');renderOdemeler();
+  if(document.getElementById('page-ozet').classList.contains('active'))renderOzet();
+  quickPayCid=null;
 }
 
 /* ══ MODALS ══ */
@@ -1196,9 +1410,115 @@ function refreshAll(){
   if(active==='page-kurgu')renderKurgu();
 }
 
+/* ══ FİREBASE SYNC ══ */
+let syncEnabled=false, syncCode='', syncDb=null, syncUnsub=null;
+let syncBusy=false, isRemoteUpdate=false;
+
+function setSyncDot(state){
+  const d=document.getElementById('sync-dot');
+  if(!d)return;
+  d.className='sync-dot'+(state?' '+state:'');
+}
+function setSyncMsg(msg,color){
+  const el=document.getElementById('sync-status-msg');
+  if(el){el.textContent=msg;el.style.color=color||'var(--text2)';}
+}
+
+async function loadFirebaseSDK(){
+  if(window.firebase)return true;
+  setSyncMsg('Firebase yükleniyor…','var(--gold)');
+  try{
+    await Promise.all([
+      new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);}),
+    ]);
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    return true;
+  }catch(e){setSyncMsg('SDK yüklenemedi. İnternet bağlantısını kontrol et.','var(--red)');return false;}
+}
+
+async function connectSync(){
+  const apiKey=document.getElementById('f-sync-key').value.trim();
+  const projectId=document.getElementById('f-sync-pid').value.trim();
+  const code=document.getElementById('f-sync-code').value.trim().toUpperCase();
+  if(!apiKey||!projectId||!code){setSyncMsg('Tüm alanları doldurun!','var(--red)');return;}
+  setSyncMsg('Bağlanıyor…','var(--gold)');setSyncDot('syncing');
+  const ok=await loadFirebaseSDK();
+  if(!ok)return;
+  try{
+    if(!firebase.apps.length){
+      firebase.initializeApp({apiKey,authDomain:projectId+'.firebaseapp.com',projectId});
+    }
+    syncDb=firebase.firestore();
+    syncCode=code;
+    syncEnabled=true;
+    // İlk push: yerel veriyi Firebase'e yükle
+    await syncDb.collection('workspaces').doc(syncCode).set(
+      {cekimler,projeler,finanslar,kurguDoctors,kurguEntries,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {merge:true}
+    );
+    // Dinlemeye başla
+    if(syncUnsub)syncUnsub();
+    syncUnsub=syncDb.collection('workspaces').doc(syncCode).onSnapshot(snap=>{
+      if(!snap.exists||isRemoteUpdate)return;
+      const data=snap.data();
+      if(!data)return;
+      isRemoteUpdate=true;
+      if(data.cekimler){cekimler=data.cekimler;localStorage.setItem(SK_C,JSON.stringify(cekimler));}
+      if(data.projeler){projeler=data.projeler;localStorage.setItem(SK_P,JSON.stringify(projeler));}
+      if(data.finanslar){finanslar=data.finanslar;localStorage.setItem(SK_F,JSON.stringify(finanslar));}
+      if(data.kurguDoctors){kurguDoctors=data.kurguDoctors;localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}
+      if(data.kurguEntries){kurguEntries=data.kurguEntries;localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}
+      isRemoteUpdate=false;
+      refreshAll();
+      setSyncDot('ok');
+    },err=>{setSyncDot('err');setSyncMsg('Bağlantı hatası: '+err.message,'var(--red)');});
+    // Ayarları kaydet
+    localStorage.setItem('cm_sync_cfg',JSON.stringify({apiKey,projectId,code}));
+    setSyncDot('ok');
+    setSyncMsg('✅ Bağlandı! Kod: '+code,'var(--teal)');
+    document.getElementById('btn-sync-disconnect').style.display='block';
+  }catch(e){
+    setSyncDot('err');setSyncMsg('Hata: '+e.message,'var(--red)');syncEnabled=false;
+  }
+}
+
+async function pushToFirebase(){
+  if(!syncEnabled||!syncDb||syncBusy||isRemoteUpdate)return;
+  syncBusy=true;setSyncDot('syncing');
+  try{
+    await syncDb.collection('workspaces').doc(syncCode).set(
+      {cekimler,projeler,finanslar,kurguDoctors,kurguEntries,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},
+      {merge:false}
+    );
+    setSyncDot('ok');
+  }catch(e){setSyncDot('err');}
+  syncBusy=false;
+}
+
+function disconnectSync(){
+  if(syncUnsub){syncUnsub();syncUnsub=null;}
+  syncEnabled=false;syncDb=null;syncCode='';
+  localStorage.removeItem('cm_sync_cfg');
+  setSyncDot('');
+  setSyncMsg('Bağlantı kesildi','var(--text2)');
+  document.getElementById('btn-sync-disconnect').style.display='none';
+}
+
+async function autoReconnectSync(){
+  try{
+    const cfg=JSON.parse(localStorage.getItem('cm_sync_cfg')||'null');
+    if(!cfg||!cfg.apiKey||!cfg.projectId||!cfg.code)return;
+    document.getElementById('f-sync-key').value=cfg.apiKey;
+    document.getElementById('f-sync-pid').value=cfg.projectId;
+    document.getElementById('f-sync-code').value=cfg.code;
+    await connectSync();
+  }catch{}
+}
+
 /* ══ INIT ══ */
 load();
 renderOzet();
+setTimeout(autoReconnectSync,1500);
 </script>
 </body>
 </html>
