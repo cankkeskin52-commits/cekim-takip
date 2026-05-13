@@ -1,66 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f1a2e"/>
-      <stop offset="100%" stop-color="#060c18"/>
+      <stop offset="0%" stop-color="#0d1929"/>
+      <stop offset="100%" stop-color="#050c17"/>
     </linearGradient>
-    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="cg" x1="0" y1="0" x2="0.5" y2="1">
       <stop offset="0%" stop-color="#3df0dc"/>
-      <stop offset="100%" stop-color="#1ab8a8"/>
+      <stop offset="100%" stop-color="#16a89a"/>
     </linearGradient>
-    <clipPath id="lens-clip">
-      <circle cx="256" cy="230" r="148"/>
-    </clipPath>
+    <linearGradient id="dot" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#2de0cc" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
   <!-- Background -->
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
 
-  <!-- Subtle glow behind lens -->
-  <circle cx="256" cy="230" r="148" fill="rgba(45,224,204,0.05)"/>
+  <!-- Subtle inner glow -->
+  <rect width="512" height="512" rx="108" fill="none"
+        stroke="rgba(45,224,204,0.08)" stroke-width="2"/>
 
-  <!-- Aperture blades (6), clipped to lens circle -->
-  <g clip-path="url(#lens-clip)">
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(0 256 230)" opacity="0.95"/>
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(60 256 230)" opacity="0.80"/>
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(120 256 230)" opacity="0.65"/>
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(180 256 230)" opacity="0.95"/>
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(240 256 230)" opacity="0.80"/>
-    <rect x="232" y="82" width="48" height="148" rx="24" fill="url(#tg)"
-          transform="rotate(300 256 230)" opacity="0.65"/>
-  </g>
+  <!-- Bold C — arc from top-right to bottom-right, opening on right -->
+  <!-- Center (256,248), radius 162, gap ±58° -->
+  <!-- Top tip: (342, 111)  Bottom tip: (342, 385) -->
+  <path d="M 342 111 A 162 162 0 1 0 342 385"
+        stroke="url(#cg)"
+        stroke-width="72"
+        fill="none"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
 
-  <!-- Outer lens ring -->
-  <circle cx="256" cy="230" r="148" fill="none" stroke="#2de0cc" stroke-width="6" opacity="0.35"/>
-  <!-- Inner ring detail -->
-  <circle cx="256" cy="230" r="118" fill="none" stroke="#2de0cc" stroke-width="2" opacity="0.15"/>
+  <!-- Two accent dots at the C tips -->
+  <circle cx="342" cy="111" r="14" fill="#2de0cc" opacity="0.55"/>
+  <circle cx="342" cy="385" r="10" fill="#2de0cc" opacity="0.35"/>
 
-  <!-- Dark center (lens opening) -->
-  <circle cx="256" cy="230" r="54" fill="url(#bg)"/>
+  <!-- Bright center dot (focal point of the C opening) -->
+  <circle cx="342" cy="248" r="18" fill="url(#dot)" opacity="0.85"/>
 
-  <!-- Center reflection dot -->
-  <circle cx="256" cy="230" r="22" fill="url(#tg)" opacity="0.9"/>
-  <circle cx="244" cy="220" r="7" fill="white" opacity="0.3"/>
-
-  <!-- CLENSMEDYA wordmark -->
-  <text x="256" y="428"
+  <!-- CLENS wordmark -->
+  <text x="256" y="465"
         text-anchor="middle"
-        font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
-        font-size="58"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-size="52"
         font-weight="800"
-        letter-spacing="6"
-        fill="#2de0cc">CLENS</text>
-  <text x="256" y="478"
-        text-anchor="middle"
-        font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
-        font-size="32"
-        font-weight="500"
-        letter-spacing="14"
+        letter-spacing="10"
         fill="#2de0cc"
-        opacity="0.6">MEDYA</text>
+        opacity="0.8">CLENS</text>
 </svg>
