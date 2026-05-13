@@ -4,51 +4,14 @@
       <stop offset="0%" stop-color="#0d1929"/>
       <stop offset="100%" stop-color="#050c17"/>
     </linearGradient>
-    <linearGradient id="cg" x1="0" y1="0" x2="0.5" y2="1">
+    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#3df0dc"/>
       <stop offset="100%" stop-color="#16a89a"/>
     </linearGradient>
-    <linearGradient id="dot" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#2de0cc" stop-opacity="0.6"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-
-  <!-- Background -->
-  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
-
-  <!-- Subtle inner glow -->
-  <rect width="512" height="512" rx="108" fill="none"
-        stroke="rgba(45,224,204,0.08)" stroke-width="2"/>
-
-  <!-- Bold C — arc from top-right to bottom-right, opening on right -->
-  <!-- Center (256,248), radius 162, gap ±58° -->
-  <!-- Top tip: (342, 111)  Bottom tip: (342, 385) -->
-  <path d="M 342 111 A 162 162 0 1 0 342 385"
-        stroke="url(#cg)"
-        stroke-width="72"
-        fill="none"
-        stroke-linecap="round"
-        filter="url(#glow)"/>
-
-  <!-- Two accent dots at the C tips -->
-  <circle cx="342" cy="111" r="14" fill="#2de0cc" opacity="0.55"/>
-  <circle cx="342" cy="385" r="10" fill="#2de0cc" opacity="0.35"/>
-
-  <!-- Bright center dot (focal point of the C opening) -->
-  <circle cx="342" cy="248" r="18" fill="url(#dot)" opacity="0.85"/>
-
-  <!-- CLENS wordmark -->
-  <text x="256" y="465"
-        text-anchor="middle"
-        font-family="'Helvetica Neue', Arial, sans-serif"
-        font-size="52"
-        font-weight="800"
-        letter-spacing="10"
-        fill="#2de0cc"
-        opacity="0.8">CLENS</text>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- C: merkez(256,256), yarıçap 166, ±55° açıklık sağda -->
+  <!-- Üst uç: (351,120)  Alt uç: (351,392) -->
+  <path d="M 351 120 A 166 166 0 1 0 351 392"
+        stroke="url(#cg)" stroke-width="76" fill="none" stroke-linecap="round"/>
 </svg>
