@@ -14,7 +14,21 @@
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/'})
-      .then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){console.log('Güncelleme hazır');}});});});
+      .then(r=>{
+        r.addEventListener('updatefound',()=>{
+          const w=r.installing;
+          w.addEventListener('statechange',()=>{
+            if(w.state==='installed'&&navigator.serviceWorker.controller){
+              // Yeni sürüm hazır — otomatik yenile
+              window.location.reload();
+            }
+          });
+        });
+      });
+    // SW değişince sayfayı yenile (skipWaiting sonrası)
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      window.location.reload();
+    });
   });
 }
 </script>
