@@ -37,7 +37,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 #app{display:flex;flex-direction:column;height:100dvh;}
 
 /* ── HEADER ── */
-.hdr{padding:calc(var(--st)+14px) 18px 12px;background:rgba(8,13,26,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;z-index:20;position:relative;}
+.hdr{padding:max(calc(var(--st) + 14px), 54px) 18px 12px;background:rgba(8,13,26,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;z-index:20;position:relative;}
 .hdr-brand{display:flex;align-items:baseline;gap:6px;}
 .hdr-title{font-size:17px;font-weight:700;letter-spacing:-.4px;color:var(--teal);}
 .hdr-sub{font-size:10px;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;}
