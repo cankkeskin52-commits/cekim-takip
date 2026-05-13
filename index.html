@@ -41,11 +41,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .hdr-sub{font-size:10px;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;}
 .hdr-add{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#080d1a;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 16px rgba(45,224,204,.35);}
 
-/* ── BOTTOM NAV (5 tabs) ── */
-.bnav{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);padding-bottom:var(--sb);}
+/* ── BOTTOM NAV (6 tabs) ── */
+.bnav{display:grid;grid-template-columns:repeat(6,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);padding-bottom:var(--sb);}
 .bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 7px;cursor:pointer;}
-.bnav-icon{font-size:19px;}
-.bnav-label{font-size:9px;color:var(--text2);transition:color .2s;}
+.bnav-icon{font-size:18px;}
+.bnav-label{font-size:8.5px;color:var(--text2);transition:color .2s;}
 .bnav-item.active .bnav-label{color:var(--teal);}
 .bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px var(--teal));}
 
@@ -243,6 +243,25 @@ textarea.fi{resize:none;height:72px;}
 .empty-s{text-align:center;padding:48px 20px;color:var(--text3);}
 .empty-s .ei{font-size:44px;margin-bottom:10px;}
 .empty-s .et{font-size:13px;}
+
+/* ── KURGU ── */
+.ku-doctor-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:0;}
+.ku-doctor-head{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.ku-doctor-avatar{width:38px;height:38px;border-radius:10px;background:var(--purple2);border:.5px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ku-doctor-info{flex:1;min-width:0;}
+.ku-doctor-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ku-doctor-spec{font-size:10px;color:var(--text2);margin-top:1px;}
+.ku-doctor-stats{text-align:right;flex-shrink:0;}
+.ku-doctor-count{font-size:18px;font-weight:800;color:var(--purple);}
+.ku-doctor-price{font-size:10px;color:var(--text2);margin-top:1px;}
+.ku-quick-add{width:30px;height:30px;background:var(--purple2);border:.5px solid rgba(167,139,250,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--purple);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;}
+.ku-quick-add:active{background:rgba(167,139,250,.25);}
+.ku-entries{border-top:.5px solid var(--border);}
+.ku-entry-row{padding:10px 14px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.ku-entry-row:last-child{border-bottom:none;}
+.ku-entry-date{font-size:10px;color:var(--text2);flex-shrink:0;min-width:52px;}
+.ku-entry-count{font-size:13px;font-weight:700;color:var(--purple);white-space:nowrap;}
+.ku-entry-amt{font-size:12px;color:var(--text2);}
 </style>
 </head>
 <body>
@@ -310,6 +329,19 @@ textarea.fi{resize:none;height:72px;}
     <div class="prj-add-btn" onclick="openModal('modal-prj')">+ Yeni Proje</div>
   </div>
 
+  <!-- KURGU -->
+  <div class="page" id="page-kurgu">
+    <div class="month-bar">
+      <div class="month-nav" onclick="changeKurguMonth(-1)">‹</div>
+      <div style="text-align:center"><div class="month-label" id="ku-month-lbl">Mayıs 2026</div></div>
+      <div class="month-nav" onclick="changeKurguMonth(1)">›</div>
+    </div>
+    <div class="dash-grid" id="ku-summary"></div>
+    <div class="sec-lbl">Doktorlar</div>
+    <div style="padding:0 14px;display:flex;flex-direction:column;gap:10px;" id="ku-doctors-list"></div>
+    <div onclick="openModal('modal-doktor')" style="margin:14px 14px 0;padding:12px;background:var(--purple2);border:.5px solid rgba(167,139,250,.25);border-radius:12px;color:var(--purple);font-size:13px;font-weight:600;text-align:center;cursor:pointer;">+ Yeni Doktor Ekle</div>
+  </div>
+
   <!-- FİNANS -->
   <div class="page" id="page-finans">
     <div class="month-bar">
@@ -348,6 +380,9 @@ textarea.fi{resize:none;height:72px;}
     <div class="bnav-item" id="nav-projeler" onclick="switchPage('projeler',this)">
       <div class="bnav-icon">🎬</div><div class="bnav-label">Projeler</div>
     </div>
+    <div class="bnav-item" id="nav-kurgu" onclick="switchPage('kurgu',this)">
+      <div class="bnav-icon">✂️</div><div class="bnav-label">Kurgu</div>
+    </div>
     <div class="bnav-item" id="nav-finans" onclick="switchPage('finans',this)">
       <div class="bnav-icon">💰</div><div class="bnav-label">Finans</div>
     </div>
@@ -371,6 +406,10 @@ textarea.fi{resize:none;height:72px;}
       <div onclick="closeModal('ov-addmenu');setTimeout(()=>openModal('modal-prj'),300);" style="background:var(--bg3);border:.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">
         <div style="font-size:24px;">🎬</div>
         <div><div style="font-size:14px;font-weight:700;">Proje Ekle</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Uzun soluklu proje</div></div>
+      </div>
+      <div onclick="closeModal('ov-addmenu');setTimeout(()=>openAddKurgu(),300);" style="background:var(--bg3);border:.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <div style="font-size:24px;">✂️</div>
+        <div><div style="font-size:14px;font-weight:700;">Kurgu Ekle</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">GMNDİJİTAL kurgu kaydı</div></div>
       </div>
     </div>
   </div>
@@ -462,6 +501,58 @@ textarea.fi{resize:none;height:72px;}
   </div>
 </div>
 
+<!-- KURGU ENTRY MODAL -->
+<div class="ov" id="modal-kurgu" onclick="closeModal('modal-kurgu',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr"><div class="modal-title" id="ku-modal-title">Kurgu Ekle</div><div class="modal-close" onclick="closeModal('modal-kurgu')">✕</div></div>
+    <div class="fb">
+      <input type="hidden" id="f-kuid">
+      <div class="fg"><label class="fl">Doktor *</label>
+        <select class="fi" id="f-ku-doctor" onchange="fillKuPrice()">
+          <option value="">— Doktor seç —</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Tarih *</label><input class="fi" id="f-ku-date" type="date"></div>
+        <div class="fg"><label class="fl">Kurgu Sayısı</label><input class="fi" id="f-ku-count" type="number" placeholder="1" inputmode="numeric" min="1" value="1" oninput="updateKuTotal()"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Birim Fiyat (₺)</label><input class="fi" id="f-ku-price" type="number" placeholder="750" inputmode="numeric" oninput="updateKuTotal()"></div>
+        <div class="fg"><label class="fl">Toplam</label><div class="fi" id="f-ku-total" style="color:var(--purple);font-weight:700;display:flex;align-items:center;">₺0</div></div>
+      </div>
+      <div class="fg"><label class="fl">Ödeme Durumu</label>
+        <div class="status-row">
+          <div class="st-opt sel-pending" data-st="pending" onclick="selStKu(this)"><div class="st-icon">⏳</div><div class="st-lbl">Bekliyor</div></div>
+          <div class="st-opt" data-st="paid" onclick="selStKu(this)"><div class="st-icon">✅</div><div class="st-lbl">Ödendi</div></div>
+          <div class="st-opt" data-st="cancelled" onclick="selStKu(this)"><div class="st-icon">❌</div><div class="st-lbl">İptal</div></div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Notlar</label><textarea class="fi" id="f-ku-notes" placeholder="Ek bilgi..."></textarea></div>
+      <button class="btn-p" onclick="saveKurgu()">Kaydet</button>
+      <button class="btn-d" id="btn-del-kurgu" style="display:none" onclick="delKurgu()">Kurgu Kaydını Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- DOKTOR MODAL -->
+<div class="ov" id="modal-doktor" onclick="closeModal('modal-doktor',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr"><div class="modal-title" id="doktor-modal-title">Yeni Doktor</div><div class="modal-close" onclick="closeModal('modal-doktor')">✕</div></div>
+    <div class="fb">
+      <input type="hidden" id="f-did">
+      <div class="fg"><label class="fl">Ad Soyad *</label><input class="fi" id="f-dname" type="text" placeholder="Dr. Ad Soyad" autocomplete="off"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Uzmanlık</label><input class="fi" id="f-dspec" type="text" placeholder="Dermatoloji" autocomplete="off"></div>
+        <div class="fg"><label class="fl">Varsayılan Fiyat (₺)</label><input class="fi" id="f-dprice" type="number" placeholder="750" inputmode="numeric"></div>
+      </div>
+      <button class="btn-p" onclick="saveDoktor()">Kaydet</button>
+      <button class="btn-d" id="btn-del-doktor" style="display:none" onclick="delDoktor()">Doktoru Sil</button>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL MODAL -->
 <div class="ov" id="modal-detail" onclick="closeModal('modal-detail',event)">
   <div class="modal">
@@ -475,13 +566,16 @@ textarea.fi{resize:none;height:72px;}
 <script>
 /* ══ STORE KEYS ══ */
 const SK_C='cm_cekimler_v2', SK_P='cm_projeler_v2', SK_F='cm_finans_v2';
-let cekimler=[], projeler=[], finanslar=[];
-let selStatus='pending', formFinType='income';
+const SK_KD='cm_kurgu_doctors_v1', SK_KE='cm_kurgu_entries_v1';
+let cekimler=[], projeler=[], finanslar=[], kurguDoctors=[], kurguEntries=[];
+let selStatus='pending', formFinType='income', selStatusKu='pending';
+let editingKuid=null, editingDid=null;
 let editingCid=null, editingFid=null;
 
 /* ══ AY STATE ══ */
 const NOW=new Date();
 let ozetM=NOW.getMonth(), ozetY=NOW.getFullYear();
+let kurguM=NOW.getMonth(), kurguY=NOW.getFullYear();
 let calM=NOW.getMonth(),  calY=NOW.getFullYear();
 let finM=NOW.getMonth(),  finY=NOW.getFullYear();
 let finType='income';
@@ -509,6 +603,14 @@ const DEF_PROJELER=[
     {city:'Manisa',days:0,dayRate:5500,totalDays:0,status:'aktif',payment:''}
   ]}
 ];
+const DEF_KURGU_DOCTORS=[
+  {id:'kd1',name:'Fatih Şahin',spec:'Genel Cerrah',defaultPrice:1000},
+  {id:'kd2',name:'Gonca Soyuduru',spec:'Dermatoloji',defaultPrice:750},
+  {id:'kd3',name:'Bora Baysal',spec:'Ortopedi',defaultPrice:750}
+];
+const DEF_KURGU_ENTRIES=[
+  {id:'ke1',doctorId:'kd2',doctorName:'Gonca Soyuduru',spec:'Dermatoloji',date:'2026-05-01',count:1,price:750,status:'pending',notes:'GMNDİJİTAL'}
+];
 const DEF_FINANS=[
   {id:'f1',type:'income',desc:'Arc CO COFFE — Mayıs',amount:15000,date:'2026-05-01',cat:'Çekim Geliri',notes:''},
   {id:'f2',type:'income',desc:'Caffestudio — Mayıs',amount:15000,date:'2026-05-01',cat:'Çekim Geliri',notes:''},
@@ -519,10 +621,14 @@ function load(){
   try{const d=localStorage.getItem(SK_C); cekimler=d?JSON.parse(d):DEF_CEKIMLER; if(!d)localStorage.setItem(SK_C,JSON.stringify(cekimler));}catch{cekimler=DEF_CEKIMLER;}
   try{const d=localStorage.getItem(SK_P); projeler=d?JSON.parse(d):DEF_PROJELER; if(!d)localStorage.setItem(SK_P,JSON.stringify(projeler));}catch{projeler=DEF_PROJELER;}
   try{const d=localStorage.getItem(SK_F); finanslar=d?JSON.parse(d):DEF_FINANS; if(!d)localStorage.setItem(SK_F,JSON.stringify(finanslar));}catch{finanslar=DEF_FINANS;}
+  try{const d=localStorage.getItem(SK_KD); kurguDoctors=d?JSON.parse(d):DEF_KURGU_DOCTORS; if(!d)localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}catch{kurguDoctors=DEF_KURGU_DOCTORS;}
+  try{const d=localStorage.getItem(SK_KE); kurguEntries=d?JSON.parse(d):DEF_KURGU_ENTRIES; if(!d)localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}catch{kurguEntries=DEF_KURGU_ENTRIES;}
 }
 function saveC(){localStorage.setItem(SK_C,JSON.stringify(cekimler));}
 function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));}
 function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));}
+function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}
+function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
 /* ══ UTILS ══ */
@@ -544,6 +650,7 @@ function switchPage(p,el){
   if(p==='takvim') renderCal();
   if(p==='odemeler') renderOdemeler();
   if(p==='projeler') renderProjeler();
+  if(p==='kurgu') renderKurgu();
   if(p==='finans') renderFinans();
 }
 
@@ -551,6 +658,7 @@ function switchPage(p,el){
 function changeOzetMonth(d){ozetM+=d;if(ozetM<0){ozetM=11;ozetY--;}if(ozetM>11){ozetM=0;ozetY++;}renderOzet();}
 function changeCal(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}selCalDay=null;renderCal();}
 function changeFinMonth(d){finM+=d;if(finM<0){finM=11;finY--;}if(finM>11){finM=0;finY++;}renderFinans();}
+function changeKurguMonth(d){kurguM+=d;if(kurguM<0){kurguM=11;kurguY--;}if(kurguM>11){kurguM=0;kurguY++;}renderKurgu();}
 
 /* ══ ÖZET ══ */
 function renderOzet(){
@@ -711,6 +819,157 @@ function addDay(pid,idx){
   renderProjeler();
   // özet sayfasındaki proje kartını da güncelle
   if(document.getElementById('page-ozet').classList.contains('active'))renderOzet();
+}
+
+/* ══ KURGU ══ */
+function renderKurgu(){
+  document.getElementById('ku-month-lbl').textContent=monthStr(kurguM,kurguY);
+  const mEntries=kurguEntries.filter(e=>{const d=pDate(e.date);return d&&d.getMonth()===kurguM&&d.getFullYear()===kurguY;});
+  const totalCount=mEntries.reduce((s,e)=>s+(e.count||0),0);
+  const totalAmt=mEntries.reduce((s,e)=>s+(e.count||0)*(e.price||0),0);
+  const pendAmt=mEntries.filter(e=>e.status==='pending').reduce((s,e)=>s+(e.count||0)*(e.price||0),0);
+  document.getElementById('ku-summary').innerHTML=`
+    <div class="dc" style="--ac:rgba(167,139,250,.07);"><div class="dc-lbl">Bu Ay Kurgu</div><div class="dc-val" style="color:var(--purple)">${totalCount}</div><div class="dc-sub">${mEntries.length} kayıt</div><div class="dc-ico">✂️</div></div>
+    <div class="dc c-gold"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val gold">${fmt(totalAmt)}</div><div class="dc-sub">${fmt(pendAmt)} bekliyor</div><div class="dc-ico">💰</div></div>`;
+  const el=document.getElementById('ku-doctors-list');
+  if(!kurguDoctors.length){el.innerHTML='<div class="empty-s"><div class="ei">🩺</div><div class="et">Doktor eklenmemiş</div></div>';return;}
+  el.innerHTML=kurguDoctors.map(doc=>{
+    const docEntries=mEntries.filter(e=>e.doctorId===doc.id);
+    const docCount=docEntries.reduce((s,e)=>s+(e.count||0),0);
+    const docAmt=docEntries.reduce((s,e)=>s+(e.count||0)*(e.price||0),0);
+    const entriesHtml=docEntries.length?`<div class="ku-entries">${docEntries.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
+      <div class="ku-entry-row" onclick="editKurguEntry('${e.id}')">
+        <div class="ku-entry-date">${fDate(e.date).split(' ').slice(0,2).join(' ')}</div>
+        <div style="flex:1"><span class="ku-entry-count">${e.count} kurgu</span> <span class="ku-entry-amt">× ${fmt(e.price)}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:12px;font-weight:700;color:${e.status==='paid'?'var(--green)':'var(--gold)'};">${fmt((e.count||0)*(e.price||0))}</span>
+          <span class="badge ${e.status}">${e.status==='paid'?'Ödendi':'Bekliyor'}</span>
+        </div>
+      </div>`).join('')}</div>`:'';
+    return`<div class="ku-doctor-card">
+      <div class="ku-doctor-head">
+        <div class="ku-quick-add" onclick="quickAddKurgu('${doc.id}')">+</div>
+        <div class="ku-doctor-avatar">🩺</div>
+        <div class="ku-doctor-info" onclick="editDoktor('${doc.id}')">
+          <div class="ku-doctor-name">${doc.name}</div>
+          <div class="ku-doctor-spec">${doc.spec||''}  •  ${fmt(doc.defaultPrice)}/kurgu</div>
+        </div>
+        <div class="ku-doctor-stats">
+          <div class="ku-doctor-count">${docCount}</div>
+          <div class="ku-doctor-price">${fmt(docAmt)}</div>
+        </div>
+      </div>
+      ${entriesHtml}
+    </div>`;
+  }).join('');
+}
+
+/* ── Kurgu form helpers ── */
+function fillDoctorSelect(selectedId){
+  const sel=document.getElementById('f-ku-doctor');
+  sel.innerHTML='<option value="">— Doktor seç —</option>'+kurguDoctors.map(d=>`<option value="${d.id}" ${d.id===selectedId?'selected':''}>${d.name} (${d.spec||''})</option>`).join('');
+}
+function fillKuPrice(){
+  const docId=document.getElementById('f-ku-doctor').value;
+  const doc=kurguDoctors.find(d=>d.id===docId);
+  if(doc){document.getElementById('f-ku-price').value=doc.defaultPrice;}
+  updateKuTotal();
+}
+function updateKuTotal(){
+  const count=Number(document.getElementById('f-ku-count').value)||0;
+  const price=Number(document.getElementById('f-ku-price').value)||0;
+  document.getElementById('f-ku-total').textContent=fmt(count*price);
+}
+function selStKu(el){
+  el.closest('.status-row').querySelectorAll('.st-opt').forEach(o=>o.classList.remove('sel-paid','sel-pending','sel-cancelled'));
+  el.classList.add('sel-'+el.dataset.st);
+  selStatusKu=el.dataset.st;
+}
+
+/* ── Kurgu Entry CRUD ── */
+function openAddKurgu(prefillDocId){
+  editingKuid=null;
+  document.getElementById('ku-modal-title').textContent='Kurgu Ekle';
+  document.getElementById('f-kuid').value='';
+  fillDoctorSelect(prefillDocId||'');
+  document.getElementById('f-ku-date').value=todayStr();
+  document.getElementById('f-ku-count').value='1';
+  document.getElementById('f-ku-price').value=prefillDocId?(kurguDoctors.find(d=>d.id===prefillDocId)?.defaultPrice||750):750;
+  document.getElementById('f-ku-notes').value='';
+  document.getElementById('btn-del-kurgu').style.display='none';
+  document.getElementById('f-ku-total').textContent=fmt(Number(document.getElementById('f-ku-price').value));
+  document.querySelector('#modal-kurgu .status-row .st-opt[data-st="pending"]').click();
+  openModal('modal-kurgu');
+}
+function quickAddKurgu(docId){
+  openAddKurgu(docId);
+}
+function editKurguEntry(id){
+  const e=kurguEntries.find(x=>x.id===id);if(!e)return;
+  editingKuid=id;
+  document.getElementById('ku-modal-title').textContent='Kurgu Düzenle';
+  document.getElementById('f-kuid').value=id;
+  fillDoctorSelect(e.doctorId);
+  document.getElementById('f-ku-date').value=e.date||'';
+  document.getElementById('f-ku-count').value=e.count||1;
+  document.getElementById('f-ku-price').value=e.price||750;
+  document.getElementById('f-ku-notes').value=e.notes||'';
+  document.getElementById('btn-del-kurgu').style.display='block';
+  updateKuTotal();
+  const stEl=document.querySelector(`#modal-kurgu .status-row .st-opt[data-st="${e.status}"]`);
+  if(stEl){document.querySelector('#modal-kurgu .status-row').querySelectorAll('.st-opt').forEach(o=>o.classList.remove('sel-paid','sel-pending','sel-cancelled'));stEl.classList.add('sel-'+e.status);selStatusKu=e.status;}
+  openModal('modal-kurgu');
+}
+function saveKurgu(){
+  const docId=document.getElementById('f-ku-doctor').value;
+  if(!docId){alert('Doktor seçiniz!');return;}
+  const doc=kurguDoctors.find(d=>d.id===docId);
+  const date=document.getElementById('f-ku-date').value;
+  if(!date){alert('Tarih zorunlu!');return;}
+  const count=Number(document.getElementById('f-ku-count').value)||1;
+  const price=Number(document.getElementById('f-ku-price').value)||0;
+  const e={id:editingKuid||uid(),doctorId:docId,doctorName:doc?.name||'',spec:doc?.spec||'',date,count,price,status:selStatusKu,notes:document.getElementById('f-ku-notes').value.trim()};
+  if(editingKuid){const i=kurguEntries.findIndex(x=>x.id===editingKuid);if(i>-1)kurguEntries[i]=e;}
+  else kurguEntries.unshift(e);
+  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;
+}
+function delKurgu(){
+  if(!editingKuid||!confirm('Bu kurgu kaydını silmek istediğine emin misin?'))return;
+  kurguEntries=kurguEntries.filter(x=>x.id!==editingKuid);
+  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;
+}
+
+/* ── Doktor CRUD ── */
+function editDoktor(id){
+  const d=kurguDoctors.find(x=>x.id===id);if(!d)return;
+  editingDid=id;
+  document.getElementById('doktor-modal-title').textContent='Doktoru Düzenle';
+  document.getElementById('f-did').value=id;
+  document.getElementById('f-dname').value=d.name||'';
+  document.getElementById('f-dspec').value=d.spec||'';
+  document.getElementById('f-dprice').value=d.defaultPrice||750;
+  document.getElementById('btn-del-doktor').style.display='block';
+  openModal('modal-doktor');
+}
+function saveDoktor(){
+  const name=document.getElementById('f-dname').value.trim();
+  if(!name){alert('Doktor adı zorunlu!');return;}
+  const d={id:editingDid||uid(),name,spec:document.getElementById('f-dspec').value.trim(),defaultPrice:Number(document.getElementById('f-dprice').value)||750};
+  if(editingDid){const i=kurguDoctors.findIndex(x=>x.id===editingDid);if(i>-1)kurguDoctors[i]=d;}
+  else kurguDoctors.push(d);
+  saveKD();closeModal('modal-doktor');
+  // reset form
+  document.getElementById('f-did').value='';document.getElementById('f-dname').value='';
+  document.getElementById('f-dspec').value='';document.getElementById('f-dprice').value='';
+  document.getElementById('btn-del-doktor').style.display='none';
+  document.getElementById('doktor-modal-title').textContent='Yeni Doktor';
+  editingDid=null;renderKurgu();
+}
+function delDoktor(){
+  if(!editingDid||!confirm('Bu doktoru silmek istediğine emin misin? Tüm kurgu kayıtları da silinir!'))return;
+  kurguDoctors=kurguDoctors.filter(x=>x.id!==editingDid);
+  kurguEntries=kurguEntries.filter(x=>x.doctorId!==editingDid);
+  saveKD();saveKE();closeModal('modal-doktor');renderKurgu();editingDid=null;
 }
 
 /* ══ FİNANS ══ */
@@ -917,6 +1176,7 @@ function refreshAll(){
   if(active==='page-ozet')renderOzet();
   if(active==='page-takvim')renderCal();
   if(active==='page-odemeler')renderOdemeler();
+  if(active==='page-kurgu')renderKurgu();
 }
 
 /* ══ INIT ══ */
