@@ -8,6 +8,14 @@
 <meta name="apple-mobile-web-app-title" content="CLENSMEDYA">
 <meta name="theme-color" content="#080d1a">
 <title>CLENSMEDYA</title>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/'})
+      .then(r=>{r.addEventListener('updatefound',()=>{const w=r.installing;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){console.log('Güncelleme hazır');}});});});
+  });
+}
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -33,11 +41,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .hdr-sub{font-size:10px;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;}
 .hdr-add{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#080d1a;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 16px rgba(45,224,204,.35);}
 
-/* ── BOTTOM NAV ── */
-.bnav{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);padding-bottom:var(--sb);}
-.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;cursor:pointer;}
-.bnav-icon{font-size:20px;}
-.bnav-label{font-size:10px;color:var(--text2);transition:color .2s;}
+/* ── BOTTOM NAV (5 tabs) ── */
+.bnav{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(8,13,26,.97);border-top:.5px solid var(--border);padding-bottom:var(--sb);}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 7px;cursor:pointer;}
+.bnav-icon{font-size:19px;}
+.bnav-label{font-size:9px;color:var(--text2);transition:color .2s;}
 .bnav-item.active .bnav-label{color:var(--teal);}
 .bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px var(--teal));}
 
@@ -49,7 +57,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .month-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 6px;}
 .month-nav{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2);cursor:pointer;}
 .month-label{font-size:16px;font-weight:700;letter-spacing:-.3px;}
-.month-year{font-size:11px;color:var(--text2);text-align:center;margin-top:1px;}
 
 /* ── DASHBOARD ── */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px 14px 0;}
@@ -84,7 +91,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .badge.paid{background:var(--green2);color:var(--green);}
 .badge.pending{background:var(--gold2);color:var(--gold);}
 .badge.cancelled{background:var(--red2);color:var(--red);}
-.badge.blue{background:var(--blue2);color:var(--blue);}
 .type-tag{display:inline-flex;align-items:center;font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;background:var(--teal2);border:.5px solid rgba(45,224,204,.2);color:var(--teal);}
 
 /* ── TAKVİM ── */
@@ -96,12 +102,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .cal-cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;background:var(--bg3);}
 .cal-cell.empty{background:transparent;cursor:default;}
 .cal-cell.today{background:var(--teal2);border:.5px solid rgba(45,224,204,.35);}
-.cal-cell.has-event{background:var(--bg3);}
 .cal-cell.selected{background:var(--teal3);border:.5px solid rgba(45,224,204,.5);}
 .cal-num{font-size:13px;font-weight:600;line-height:1;}
 .cal-cell.today .cal-num{color:var(--teal);}
 .cal-cell.weekend-day .cal-num{color:var(--red);}
-.cal-cell.other-month .cal-num{color:var(--text3);}
 .cal-dot-wrap{display:flex;gap:2px;margin-top:2px;height:5px;align-items:center;}
 .cal-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
 .cal-dot.paid{background:var(--green);}
@@ -114,22 +118,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .day-event-item:last-child{border-bottom:none;}
 .dei-name{font-size:13.5px;font-weight:600;}
 .dei-loc{font-size:11px;color:var(--text2);margin-top:1px;}
-.dei-amount{font-size:14px;font-weight:700;color:var(--teal);}
 
-/* ── ÇEKİM LİSTESİ ── */
-.cekim-list{padding:0 14px;display:flex;flex-direction:column;gap:9px;}
-.ck-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:13px;cursor:pointer;transition:transform .15s;}
-.ck-card:active{transform:scale(.985);}
-.ck-card.paid{border-left:2.5px solid var(--green);}
-.ck-card.pending{border-left:2.5px solid var(--gold);}
-.ck-card.cancelled{border-left:2.5px solid var(--red);}
-.ck-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
-.ck-name{font-size:14px;font-weight:700;}
-.ck-phone{font-size:11px;color:var(--text2);margin-top:1px;}
-.ck-amt{font-size:15px;font-weight:800;color:var(--teal);}
-.ck-mid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:7px;}
-.ck-info{font-size:11px;color:var(--text2);}
-.ck-bot{display:flex;align-items:center;gap:6px;}
+/* ── ÇEKİM LİSTESİ (TAKVİM) — sadece isim/tarih/lokasyon ── */
+.ck-simple-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
+.ck-simple{background:var(--card);border:.5px solid var(--border);border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+.ck-simple.paid{border-left:2.5px solid var(--green);}
+.ck-simple.pending{border-left:2.5px solid var(--gold);}
+.ck-simple.cancelled{border-left:2.5px solid var(--red);}
+.ck-simple-name{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ck-simple-loc{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* ── ÖDEMELER ── */
+.od-list{padding:0 14px;display:flex;flex-direction:column;gap:9px;}
+.od-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:13px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.od-card.pending{border-left:3px solid var(--gold);}
+.od-card.paid{border-left:3px solid var(--green);opacity:.7;}
+.od-card.cancelled{border-left:3px solid var(--red);opacity:.5;}
+.od-date-box{background:var(--bg3);border-radius:8px;padding:5px 8px;text-align:center;min-width:42px;flex-shrink:0;}
+.od-d{font-size:17px;font-weight:800;line-height:1;color:var(--teal);}
+.od-m{font-size:8px;text-transform:uppercase;color:var(--text2);letter-spacing:.08em;}
+.od-info{flex:1;min-width:0;}
+.od-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.od-type{font-size:10px;color:var(--text2);margin-top:1px;}
+.od-right{text-align:right;flex-shrink:0;}
+.od-amt{font-size:14px;font-weight:800;color:var(--teal);}
+.od-card.paid .od-amt{color:var(--green);}
+.od-section-lbl{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:12px 18px 4px;}
 
 /* ── PROJELER ── */
 .prj-list{padding:0 14px;display:flex;flex-direction:column;gap:12px;}
@@ -140,11 +154,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .prj-total{font-size:18px;font-weight:800;color:var(--teal);}
 .prj-total-lbl{font-size:9px;color:var(--text3);text-align:right;margin-top:1px;}
 .prj-items{border-top:.5px solid var(--border);}
-.prj-row{padding:11px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;}
+.prj-row{padding:10px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;}
 .prj-row:last-child{border-bottom:none;}
-.prj-city{font-size:13px;font-weight:700;flex:1;}
-.prj-days{font-size:11px;color:var(--text2);}
-.prj-row-amt{font-size:13px;font-weight:700;color:var(--teal);margin-right:8px;}
+.prj-city{font-size:13px;font-weight:700;}
+.prj-days{font-size:11px;color:var(--text2);margin-top:1px;}
+.prj-row-amt{font-size:13px;font-weight:700;color:var(--teal);}
 .prj-status{font-size:9px;padding:3px 8px;border-radius:20px;font-weight:600;}
 .prj-status.devam{background:var(--blue2);color:var(--blue);}
 .prj-status.bitti{background:var(--green2);color:var(--green);}
@@ -155,6 +169,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .prj-progress{height:3px;background:var(--bg3);margin:0 16px 14px;border-radius:2px;overflow:hidden;}
 .prj-progress-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:2px;transition:width .5s;}
 .prj-add-btn{margin:14px 14px 0;padding:12px;background:var(--teal2);border:.5px solid rgba(45,224,204,.25);border-radius:12px;color:var(--teal);font-size:13px;font-weight:600;text-align:center;cursor:pointer;}
+/* + gün butonu */
+.day-add-btn{width:30px;height:30px;background:var(--teal2);border:.5px solid rgba(45,224,204,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--teal);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;}
+.day-add-btn:active{background:var(--teal3);}
 
 /* ── FİNANS ── */
 .fin-toggle{display:flex;margin:12px 14px 0;background:var(--bg3);border-radius:12px;padding:3px;gap:3px;}
@@ -245,9 +262,7 @@ textarea.fi{resize:none;height:72px;}
   <div class="page active" id="page-ozet">
     <div class="month-bar">
       <div class="month-nav" onclick="changeOzetMonth(-1)">‹</div>
-      <div style="text-align:center">
-        <div class="month-label" id="ozet-month-lbl">Mayıs 2026</div>
-      </div>
+      <div style="text-align:center"><div class="month-label" id="ozet-month-lbl">Mayıs 2026</div></div>
       <div class="month-nav" onclick="changeOzetMonth(1)">›</div>
     </div>
     <div class="dash-grid" id="dash-grid"></div>
@@ -261,31 +276,34 @@ textarea.fi{resize:none;height:72px;}
   <div class="page" id="page-takvim">
     <div class="month-bar">
       <div class="month-nav" onclick="changeCal(-1)">‹</div>
-      <div style="text-align:center">
-        <div class="month-label" id="cal-month-lbl">Mayıs 2026</div>
-      </div>
+      <div style="text-align:center"><div class="month-label" id="cal-month-lbl">Mayıs 2026</div></div>
       <div class="month-nav" onclick="changeCal(1)">›</div>
     </div>
     <div class="cal-wrap">
       <div class="cal-days-hdr">
-        <div class="cal-dname">Pt</div>
-        <div class="cal-dname">Sa</div>
-        <div class="cal-dname">Ça</div>
-        <div class="cal-dname">Pe</div>
-        <div class="cal-dname">Cu</div>
-        <div class="cal-dname weekend">Ct</div>
-        <div class="cal-dname weekend">Pa</div>
+        <div class="cal-dname">Pt</div><div class="cal-dname">Sa</div><div class="cal-dname">Ça</div>
+        <div class="cal-dname">Pe</div><div class="cal-dname">Cu</div>
+        <div class="cal-dname weekend">Ct</div><div class="cal-dname weekend">Pa</div>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
     </div>
     <div id="day-events-wrap"></div>
     <div class="sec-lbl" id="cal-list-lbl">Bu Ay Çekimler</div>
-    <div class="cekim-list" id="cal-cekim-list"></div>
+    <div class="ck-simple-list" id="cal-cekim-list"></div>
+  </div>
+
+  <!-- ÖDEMELER -->
+  <div class="page" id="page-odemeler">
+    <div style="padding:14px 18px 4px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:700;">Ödemeler</div>
+    </div>
+    <div class="dash-grid" id="od-summary" style="margin-bottom:4px;"></div>
+    <div id="odemeler-content"></div>
   </div>
 
   <!-- PROJELER -->
   <div class="page" id="page-projeler">
-    <div style="padding:12px 18px 6px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="padding:12px 18px 6px;">
       <div style="font-size:16px;font-weight:700;">Projeler</div>
     </div>
     <div class="prj-list" id="prj-list"></div>
@@ -296,9 +314,7 @@ textarea.fi{resize:none;height:72px;}
   <div class="page" id="page-finans">
     <div class="month-bar">
       <div class="month-nav" onclick="changeFinMonth(-1)">‹</div>
-      <div style="text-align:center">
-        <div class="month-label" id="fin-month-lbl">Mayıs 2026</div>
-      </div>
+      <div style="text-align:center"><div class="month-label" id="fin-month-lbl">Mayıs 2026</div></div>
       <div class="month-nav" onclick="changeFinMonth(1)">›</div>
     </div>
     <div class="fin-toggle">
@@ -321,20 +337,19 @@ textarea.fi{resize:none;height:72px;}
   <!-- BOTTOM NAV -->
   <div class="bnav">
     <div class="bnav-item active" id="nav-ozet" onclick="switchPage('ozet',this)">
-      <div class="bnav-icon">📊</div>
-      <div class="bnav-label">Özet</div>
+      <div class="bnav-icon">📊</div><div class="bnav-label">Özet</div>
     </div>
     <div class="bnav-item" id="nav-takvim" onclick="switchPage('takvim',this)">
-      <div class="bnav-icon">📅</div>
-      <div class="bnav-label">Takvim</div>
+      <div class="bnav-icon">📅</div><div class="bnav-label">Takvim</div>
+    </div>
+    <div class="bnav-item" id="nav-odemeler" onclick="switchPage('odemeler',this)">
+      <div class="bnav-icon">💳</div><div class="bnav-label">Ödemeler</div>
     </div>
     <div class="bnav-item" id="nav-projeler" onclick="switchPage('projeler',this)">
-      <div class="bnav-icon">🎬</div>
-      <div class="bnav-label">Projeler</div>
+      <div class="bnav-icon">🎬</div><div class="bnav-label">Projeler</div>
     </div>
     <div class="bnav-item" id="nav-finans" onclick="switchPage('finans',this)">
-      <div class="bnav-icon">💰</div>
-      <div class="bnav-label">Finans</div>
+      <div class="bnav-icon">💰</div><div class="bnav-label">Finans</div>
     </div>
   </div>
 </div>
@@ -491,7 +506,7 @@ const DEF_PROJELER=[
   {id:'p1',name:'Kültür Yolu',desc:'Şehir şehir kültür belgeseli',items:[
     {city:'Aydın',days:5,dayRate:5500,totalDays:5,status:'bitti',payment:'alinmadi'},
     {city:'Mersin',days:5,dayRate:5500,totalDays:5,status:'devam',payment:'alinmadi'},
-    {city:'Manisa',days:0,dayRate:750,totalDays:0,status:'aktif',payment:''}
+    {city:'Manisa',days:0,dayRate:5500,totalDays:0,status:'aktif',payment:''}
   ]}
 ];
 const DEF_FINANS=[
@@ -527,6 +542,7 @@ function switchPage(p,el){
   el.classList.add('active');
   if(p==='ozet') renderOzet();
   if(p==='takvim') renderCal();
+  if(p==='odemeler') renderOdemeler();
   if(p==='projeler') renderProjeler();
   if(p==='finans') renderFinans();
 }
@@ -548,19 +564,17 @@ function renderOzet(){
     <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(sum(pend))}</div><div class="dc-sub">${pend.length} çekim bekliyor</div><div class="dc-ico">⏳</div></div>
     <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi (Yıl)</div><div class="dc-val green">${fmt(sum(allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;})))}</div><div class="dc-sub">${allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;}).length} çekim</div><div class="dc-ico">✅</div></div>
     <div class="dc c-red"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val red">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
-  // upcoming
   const today=todayStr();
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const ul=document.getElementById('upcoming-list');
   ul.innerHTML=up.length?up.map(c=>{const d=pDate(c.date);return`<div class="up-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div class="up-date"><div class="up-d">${d.getDate()}</div><div class="up-m">${MS[d.getMonth()]}</div></div><div class="up-info"><div class="up-name">${c.name}</div><div class="up-loc">${c.location||c.type||'—'}</div></div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span></div>`;}).join(''):'<div class="empty-s"><div class="ei">📭</div><div class="et">Yaklaşan çekim yok</div></div>';
-  // active projects
   const ap=projeler.filter(p=>p.items.some(i=>i.status!=='bitti'));
   const ol=document.getElementById('ozet-prj-list');
   document.getElementById('prj-sec-lbl').style.display=ap.length?'':'none';
   ol.innerHTML=ap.map(p=>{
     const total=p.items.reduce((s,i)=>s+i.days*i.dayRate,0);
     const pend=p.items.filter(i=>i.payment==='alinmadi'&&i.days>0).reduce((s,i)=>s+i.days*i.dayRate,0);
-    return`<div class="dc c-teal" onclick="switchPage('projeler',document.getElementById('nav-projeler'))" style="cursor:pointer"><div class="dc-lbl">${p.name}</div><div class="dc-val teal">${fmt(total)}</div><div class="dc-sub">₺${pend.toLocaleString('tr-TR')} alınmadı</div><div class="dc-ico">🎬</div></div>`;
+    return`<div class="dc c-teal" onclick="switchPage('projeler',document.getElementById('nav-projeler'))" style="cursor:pointer"><div class="dc-lbl">${p.name}</div><div class="dc-val teal">${fmt(total)}</div><div class="dc-sub">${fmt(pend)} alınmadı</div><div class="dc-ico">🎬</div></div>`;
   }).join('');
 }
 
@@ -569,10 +583,9 @@ function renderCal(){
   document.getElementById('cal-month-lbl').textContent=monthStr(calM,calY);
   const firstDay=new Date(calY,calM,1);
   const lastDay=new Date(calY,calM+1,0);
-  const startWd=(firstDay.getDay()+6)%7; // Mon=0
+  const startWd=(firstDay.getDay()+6)%7;
   const daysInMonth=lastDay.getDate();
-  const today=new Date(); const todayD=today.getDate(),todayM=today.getMonth(),todayY=today.getFullYear();
-  // events by day
+  const today=new Date(); const todayD=today.getDate(),todayMx=today.getMonth(),todayYx=today.getFullYear();
   const evByDay={};
   cekimler.forEach(c=>{
     const d=pDate(c.date);
@@ -584,7 +597,7 @@ function renderCal(){
   let html='';
   for(let i=0;i<startWd;i++) html+='<div class="cal-cell empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
-    const isToday=d===todayD&&calM===todayM&&calY===todayY;
+    const isToday=d===todayD&&calM===todayMx&&calY===todayYx;
     const isSel=selCalDay===d;
     const events=evByDay[d]||[];
     const wd=(new Date(calY,calM,d).getDay()+6)%7;
@@ -597,24 +610,56 @@ function renderCal(){
     html+=`<div class="${cls}" onclick="selectDay(${d})"><span class="cal-num">${d}</span><div class="cal-dot-wrap">${dots}</div></div>`;
   }
   document.getElementById('cal-grid').innerHTML=html;
-  // day events
   const dew=document.getElementById('day-events-wrap');
   if(selCalDay&&evByDay[selCalDay]){
     const evs=evByDay[selCalDay];
-    dew.innerHTML=`<div class="day-events"><div class="day-events-hdr">${selCalDay} ${MN[calM]} — ${evs.length} çekim</div>${evs.map(c=>`<div class="day-event-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div><div class="dei-name">${c.name}</div><div class="dei-loc">${c.location||c.type||'—'}</div></div><div style="text-align:right"><div class="dei-amount">${fmt(c.amount)}</div><span class="badge ${c.status}" style="margin-top:3px;">${c.status==='paid'?'Ödendi':'Bekliyor'}</span></div></div>`).join('')}</div>`;
+    dew.innerHTML=`<div class="day-events"><div class="day-events-hdr">${selCalDay} ${MN[calM]} — ${evs.length} çekim</div>${evs.map(c=>`<div class="day-event-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div><div class="dei-name">${c.name}</div><div class="dei-loc">${c.location||c.type||'—'}</div></div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':'Bekliyor'}</span></div>`).join('')}</div>`;
   } else dew.innerHTML='';
-  // month list
   const allMonth=cekimler.filter(c=>{const d=pDate(c.date);return d&&d.getMonth()===calM&&d.getFullYear()===calY;}).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById('cal-list-lbl').textContent=monthStr(calM,calY)+' Çekimleri ('+allMonth.length+')';
-  document.getElementById('cal-cekim-list').innerHTML=allMonth.length?allMonth.map(c=>ckCardHtml(c)).join(''):'<div class="empty-s"><div class="ei">📷</div><div class="et">Bu ay çekim yok</div></div>';
+  document.getElementById('cal-cekim-list').innerHTML=allMonth.length?allMonth.map(c=>ckSimpleHtml(c)).join(''):'<div class="empty-s"><div class="ei">📷</div><div class="et">Bu ay çekim yok</div></div>';
 }
 function selectDay(d){selCalDay=selCalDay===d?null:d;renderCal();}
 
-function ckCardHtml(c){
-  return`<div class="ck-card ${c.status}" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
-    <div class="ck-top"><div><div class="ck-name">${c.name}</div><div class="ck-phone">${c.phone||''}</div></div><div class="ck-amt">${fmt(c.amount)}</div></div>
-    <div class="ck-mid"><div class="ck-info">📅 ${fDate(c.date)}</div>${c.location?`<div class="ck-info">📍 ${c.location}</div>`:''}</div>
-    <div class="ck-bot">${c.type?`<span class="type-tag">${c.type}</span>`:''}<div style="flex:1;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:4px;">${c.notes||''}</div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'⏳ Bekliyor':'❌ İptal'}</span></div>
+/* Sadece isim + tarih + lokasyon — ücret yok */
+function ckSimpleHtml(c){
+  const d=pDate(c.date);
+  return`<div class="ck-simple ${c.status}" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
+    <div class="up-date" style="flex-shrink:0;"><div class="up-d">${d?d.getDate():'—'}</div><div class="up-m">${d?MS[d.getMonth()]:''}</div></div>
+    <div style="flex:1;min-width:0;"><div class="ck-simple-name">${c.name}</div>${c.location?`<div class="ck-simple-loc">📍 ${c.location}</div>`:''}</div>
+    <span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span>
+  </div>`;
+}
+
+/* ══ ÖDEMELER ══ */
+function renderOdemeler(){
+  const pending=cekimler.filter(c=>c.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));
+  const paid=cekimler.filter(c=>c.status==='paid').sort((a,b)=>b.date.localeCompare(a.date));
+  const cancelled=cekimler.filter(c=>c.status==='cancelled').sort((a,b)=>b.date.localeCompare(a.date));
+  const sumPend=pending.reduce((s,c)=>s+Number(c.amount||0),0);
+  const sumPaid=paid.reduce((s,c)=>s+Number(c.amount||0),0);
+  document.getElementById('od-summary').innerHTML=`
+    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(sumPend)}</div><div class="dc-sub">${pending.length} ödeme bekliyor</div><div class="dc-ico">⏳</div></div>
+    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid)}</div><div class="dc-sub">${paid.length} ödeme alındı</div><div class="dc-ico">✅</div></div>`;
+  let html='';
+  if(pending.length){
+    html+=`<div class="od-section-lbl">⏳ Bekleyenler (${pending.length})</div><div class="od-list">${pending.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
+  if(paid.length){
+    html+=`<div class="od-section-lbl">✅ Ödenenler (${paid.length})</div><div class="od-list">${paid.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
+  if(cancelled.length){
+    html+=`<div class="od-section-lbl">❌ İptal (${cancelled.length})</div><div class="od-list">${cancelled.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
+  if(!cekimler.length) html='<div class="empty-s"><div class="ei">💳</div><div class="et">Henüz kayıt yok</div></div>';
+  document.getElementById('odemeler-content').innerHTML=html;
+}
+function odCardHtml(c){
+  const d=pDate(c.date);
+  return`<div class="od-card ${c.status}" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
+    <div class="od-date-box"><div class="od-d">${d?d.getDate():'—'}</div><div class="od-m">${d?MS[d.getMonth()]:''}</div></div>
+    <div class="od-info"><div class="od-name">${c.name}</div><div class="od-type">${c.type||''}${c.location?' · '+c.location:''}</div></div>
+    <div class="od-right"><div class="od-amt">${fmt(c.amount)}</div><span class="badge ${c.status}" style="margin-top:4px;">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span></div>
   </div>`;
 }
 
@@ -633,10 +678,14 @@ function renderProjeler(){
         <div><div class="prj-total">${fmt(totalEarned)}</div><div class="prj-total-lbl">${p.items.length} şehir</div></div>
       </div>
       <div class="prj-progress"><div class="prj-progress-bar" style="width:${pct}%"></div></div>
-      <div class="prj-items">${p.items.map(i=>{
+      <div class="prj-items">${p.items.map((i,idx)=>{
         const amt=i.days*i.dayRate;
         return`<div class="prj-row">
-          <div><div class="prj-city">${i.city}</div><div class="prj-days">${i.days} gün × ${fmt(i.dayRate)}</div></div>
+          <div class="day-add-btn" onclick="addDay('${p.id}',${idx})">+</div>
+          <div style="flex:1;min-width:0;">
+            <div class="prj-city">${i.city}</div>
+            <div class="prj-days">${i.days} gün × ${fmt(i.dayRate)}</div>
+          </div>
           <div style="text-align:right">
             <div class="prj-row-amt">${fmt(amt)}</div>
             <div style="display:flex;gap:4px;justify-content:flex-end;margin-top:3px;">
@@ -648,6 +697,20 @@ function renderProjeler(){
       }).join('')}</div>
     </div>`;
   }).join('');
+}
+
+/* ++ GÜN EKLE — her tıkta +1 gün, 5500₺ sabit oran, kaydeder */
+function addDay(pid,idx){
+  const p=projeler.find(x=>x.id===pid);
+  if(!p)return;
+  const item=p.items[idx];
+  item.days=(item.days||0)+1;
+  item.totalDays=Math.max(item.totalDays||0,item.days);
+  item.dayRate=item.dayRate||5500;
+  saveP();
+  renderProjeler();
+  // özet sayfasındaki proje kartını da güncelle
+  if(document.getElementById('page-ozet').classList.contains('active'))renderOzet();
 }
 
 /* ══ FİNANS ══ */
@@ -692,13 +755,13 @@ function setFormFinType(t){
 }
 
 /* ══ CEKİM CRUD ══ */
-function openAddCekim(prefillDate){
+function openAddCekim(){
   editingCid=null;
   document.getElementById('cekim-modal-title').textContent='Yeni Çekim';
   document.getElementById('f-cid').value='';
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
-  document.getElementById('f-date').value=prefillDate||(calM===NOW.getMonth()&&calY===NOW.getFullYear()?todayStr():calY+'-'+(String(calM+1).padStart(2,'0'))+'-01');
+  document.getElementById('f-date').value=calY+'-'+(String(calM+1).padStart(2,'0'))+'-'+(String(NOW.getDate()).padStart(2,'0'));
   document.getElementById('f-amount').value='';
   document.getElementById('f-loc').value='';
   document.getElementById('f-notes').value='';
@@ -778,23 +841,10 @@ function delFinans(){
   finanslar=finanslar.filter(x=>x.id!==editingFid);
   saveF();closeModal('modal-fin');renderFinans();editingFid=null;
 }
-function openFinansForm(){
-  editingFid=null;
-  document.getElementById('fin-modal-title').textContent='Gelir / Gider Ekle';
-  document.getElementById('f-fid').value='';
-  document.getElementById('f-fin-desc').value='';
-  document.getElementById('f-fin-amt').value='';
-  document.getElementById('f-fin-date').value=finY+'-'+(String(finM+1).padStart(2,'0'))+'-'+(String(new Date().getDate()).padStart(2,'0'));
-  document.getElementById('f-fin-cat').value='Çekim Geliri';
-  document.getElementById('f-fin-notes').value='';
-  document.getElementById('btn-del-fin').style.display='none';
-  setFormFinType(finType);
-  openModal('modal-fin');
-}
 
 /* ══ PROJE CRUD ══ */
 let prjItemRows=0;
-function addPrjItemRow(city='',days='',rate='',status='aktif',payment=''){
+function addPrjItemRow(city='',days='',rate='5500',status='aktif',payment=''){
   prjItemRows++;
   const id=prjItemRows;
   const div=document.createElement('div');
@@ -827,7 +877,9 @@ function saveProje(){
   document.querySelectorAll('[id^="pi-city-"]').forEach(el=>{
     const id=el.id.split('-').pop();
     const city=el.value.trim();if(!city)return;
-    items.push({city,days:Number(document.getElementById('pi-days-'+id).value)||0,dayRate:Number(document.getElementById('pi-rate-'+id).value)||0,totalDays:Number(document.getElementById('pi-days-'+id).value)||0,status:document.getElementById('pi-status-'+id).value,payment:document.getElementById('pi-pay-'+id).value});
+    const days=Number(document.getElementById('pi-days-'+id).value)||0;
+    const rate=Number(document.getElementById('pi-rate-'+id).value)||5500;
+    items.push({city,days,dayRate:rate,totalDays:days,status:document.getElementById('pi-status-'+id).value,payment:document.getElementById('pi-pay-'+id).value});
   });
   projeler.push({id:uid(),name,desc:document.getElementById('f-pdesc').value.trim(),items});
   saveP();closeModal('modal-prj');renderProjeler();
@@ -864,6 +916,7 @@ function refreshAll(){
   const active=document.querySelector('.page.active')?.id;
   if(active==='page-ozet')renderOzet();
   if(active==='page-takvim')renderCal();
+  if(active==='page-odemeler')renderOdemeler();
 }
 
 /* ══ INIT ══ */
