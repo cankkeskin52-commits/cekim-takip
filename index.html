@@ -747,7 +747,7 @@ function renderCal(){
     const evs=evByDay[selCalDay];
     dew.innerHTML=`<div class="day-events"><div class="day-events-hdr">${selCalDay} ${MN[calM]} — ${evs.length} çekim</div>${evs.map(c=>`<div class="day-event-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div><div class="dei-name">${c.name}</div><div class="dei-loc">${c.location||c.type||'—'}</div></div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':'Bekliyor'}</span></div>`).join('')}</div>`;
   } else dew.innerHTML='';
-  const allMonth=cekimler.filter(c=>{const d=pDate(c.date);return d&&d.getMonth()===calM&&d.getFullYear()===calY;}).sort((a,b)=>a.date.localeCompare(b.date));
+  const allMonth=cekimler.filter(c=>{const d=pDate(c.date);return d&&d.getMonth()===calM&&d.getFullYear()===calY&&c.type!=='Sabit'&&c.type!=='Kurgu';}).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById('cal-list-lbl').textContent=monthStr(calM,calY)+' Çekimleri ('+allMonth.length+')';
   document.getElementById('cal-cekim-list').innerHTML=allMonth.length?allMonth.map(c=>ckSimpleHtml(c)).join(''):'<div class="empty-s"><div class="ei">📷</div><div class="et">Bu ay çekim yok</div></div>';
 }
