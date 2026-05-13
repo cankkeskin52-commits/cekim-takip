@@ -808,12 +808,14 @@ function renderOzet(){
   },0);
   const pendingRemaining=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
   const hasPartial=pend.some(c=>Number(c.paidAmount||0)>0);
-  const allPaid=cekimler.filter(c=>c.status==='paid');
-  const yearPaid=allPaid.filter(c=>{const d=pDate(c.date);return d&&d.getFullYear()===ozetY;});
+  // Tüm zamanlardaki kalan tahsilat (tüm bekleyen + kısmi)
+  const allPending=cekimler.filter(c=>c.status==='pending');
+  const totalKalan=allPending.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+  const totalKalanCount=allPending.length;
   document.getElementById('dash-grid').innerHTML=`
     <div class="dc c-teal"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val teal">${fmt(sumReceived(mc))}</div><div class="dc-sub">${paid.length} tam + ${pend.filter(c=>c.paidAmount>0).length} kısmi</div><div class="dc-ico">📅</div></div>
     <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${pend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
-    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi (Yıl)</div><div class="dc-val green">${fmt(sum(yearPaid))}</div><div class="dc-sub">${yearPaid.length} çekim</div><div class="dc-ico">✅</div></div>
+    <div class="dc c-red" style="--ac:rgba(167,139,250,.07);"><div class="dc-lbl">Toplam Kalan Tahsilat</div><div class="dc-val" style="color:var(--purple)">${fmt(totalKalan)}</div><div class="dc-sub">${totalKalanCount} çekimden bekliyor</div><div class="dc-ico">💼</div></div>
     <div class="dc c-red"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val red">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
   const today=todayStr();
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
@@ -925,15 +927,18 @@ function odCardHtml(c){
   const pi=partialInfo(c);
   const cardStatus=pi&&pi.remaining>0?'partial':c.status;
   const borderColor=cardStatus==='partial'?'var(--blue)':cardStatus==='paid'?'var(--green)':cardStatus==='cancelled'?'var(--red)':'var(--gold)';
+  const displayAmt = pi&&pi.remaining>0 ? pi.remaining : Number(c.amount||0);
+  const amtColor = pi&&pi.remaining>0 ? 'var(--blue)' : c.status==='paid' ? 'var(--green)' : 'var(--teal)';
   return`<div class="od-card ${c.status}" style="border-left-color:${borderColor};" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
     <div class="od-date-box"><div class="od-d">${d?d.getDate():'—'}</div><div class="od-m">${d?MS[d.getMonth()]:''}</div></div>
     <div class="od-info" style="min-width:0;flex:1;">
       <div class="od-name">${c.name}</div>
       <div class="od-type">${c.type||''}${c.location?' · '+c.location:''}</div>
-      ${pi&&pi.remaining>0?`<div class="od-progress"><div class="od-progress-bar" style="width:${pi.pct}%"></div></div><div class="od-remaining">Alınan ${fmt(pi.paid)} · Kalan ${fmt(pi.remaining)}</div>`:''}
+      ${pi&&pi.remaining>0?`<div class="od-progress"><div class="od-progress-bar" style="width:${pi.pct}%"></div></div><div class="od-remaining">Alınan ${fmt(pi.paid)} / Toplam ${fmt(c.amount)}</div>`:''}
     </div>
     <div class="od-right" style="flex-shrink:0;text-align:right;">
-      <div class="od-amt">${fmt(c.amount)}</div>
+      <div class="od-amt" style="color:${amtColor};">${fmt(displayAmt)}</div>
+      ${pi&&pi.remaining>0?`<div style="font-size:9px;color:var(--text3);margin-top:1px;">kalan</div>`:''}
       ${cBadge(c)}
       ${c.status!=='paid'&&c.status!=='cancelled'?`<div style="margin-top:5px;"><span class="pay-quick" onclick="event.stopPropagation();quickPay('${c.id}')">+ Ödeme Al</span></div>`:''}
     </div>
