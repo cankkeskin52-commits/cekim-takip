@@ -1,4 +1,4 @@
-const CACHE = 'cm-v18';
+const CACHE = 'cm-v19';
 const CORE = ['/cekim-takip/', '/cekim-takip/index.html'];
 
 self.addEventListener('install', e => {
@@ -11,6 +11,17 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => clients.claim())
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || '/cekim-takip/';
+  e.waitUntil(
+    clients.matchAll({type:'window',includeUncontrolled:true}).then(list => {
+      for(const c of list){ if(c.url.includes('/cekim-takip/')&&'focus' in c) return c.focus(); }
+      return clients.openWindow(url);
+    })
   );
 });
 

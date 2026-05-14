@@ -1616,10 +1616,77 @@ async function autoReconnectSync(){
   }catch{}
 }
 
+/* ══ BİLDİRİMLER ══ */
+const NK='cm_notified_'; // localStorage key prefix
+
+function tomorrowStr(){
+  const d=new Date(); d.setDate(d.getDate()+1);
+  return d.toISOString().split('T')[0];
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return false;
+  if(Notification.permission==='granted')return true;
+  if(Notification.permission==='denied')return false;
+  const p=await Notification.requestPermission();
+  return p==='granted';
+}
+
+async function checkTomorrowShoots(){
+  const granted=await requestNotifPermission();
+  if(!granted)return;
+
+  const tmr=tomorrowStr();
+  const shoots=cekimler.filter(c=>c.date===tmr&&c.status!=='cancelled');
+  if(!shoots.length)return;
+
+  // Aynı gün tekrar bildirme
+  const key=NK+tmr;
+  if(localStorage.getItem(key))return;
+  localStorage.setItem(key,'1');
+
+  // Eski bildirimleri temizle (7 günden eski)
+  const week=new Date(); week.setDate(week.getDate()-7);
+  Object.keys(localStorage).filter(k=>k.startsWith(NK)).forEach(k=>{
+    const d=k.replace(NK,'');
+    if(d<week.toISOString().split('T')[0]) localStorage.removeItem(k);
+  });
+
+  const reg=await navigator.serviceWorker.ready;
+
+  shoots.forEach(c=>{
+    const body=[]
+    if(c.location) body.push('📍 '+c.location);
+    if(c.amount)   body.push('💰 '+fmt(c.amount));
+    if(c.type)     body.push('🏷 '+c.type);
+
+    reg.showNotification('📷 Yarın Çekim Var!',{
+      body: c.name+(body.length?'\n'+body.join('  ·  '):''),
+      icon: '/cekim-takip/icon.svg',
+      badge:'/cekim-takip/icon.svg',
+      tag: 'shoot-'+c.id,
+      renotify: false,
+      vibrate:[200,100,200],
+      data:{url:'/cekim-takip/'}
+    });
+  });
+}
+
+// Sabah 09:00'da otomatik kontrol
+function scheduleNotifCheck(){
+  const now=new Date();
+  const next=new Date(now);
+  next.setHours(9,0,0,0);
+  if(next<=now) next.setDate(next.getDate()+1);
+  const ms=next-now;
+  setTimeout(()=>{checkTomorrowShoots();scheduleNotifCheck();},ms);
+}
+
 /* ══ INIT ══ */
 load();
 renderOzet();
 setTimeout(autoReconnectSync,1500);
+setTimeout(()=>{checkTomorrowShoots();scheduleNotifCheck();},2000);
 </script>
 </body>
 </html>
