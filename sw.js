@@ -1,4 +1,4 @@
-const CACHE = 'cm-v15';
+const CACHE = 'cm-v16';
 const CORE = ['/cekim-takip/', '/cekim-takip/index.html'];
 
 self.addEventListener('install', e => {

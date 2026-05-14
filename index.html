@@ -269,6 +269,29 @@ textarea.fi{resize:none;height:72px;}
 .empty-s .ei{font-size:44px;margin-bottom:10px;}
 .empty-s .et{font-size:13px;}
 
+/* ── TOAST ── */
+#toast-wrap{position:fixed;bottom:calc(var(--sb)+80px);left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+.toast{background:rgba(22,31,51,.97);border:.5px solid var(--border2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:14px;padding:11px 18px;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);opacity:0;transform:translateY(12px) scale(.96);transition:all .25s cubic-bezier(.32,.72,0,1);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0) scale(1);}
+.toast.ok{color:var(--green);border-color:rgba(74,222,128,.25);}
+.toast.err{color:var(--red);border-color:rgba(255,92,92,.25);}
+.toast.info{color:var(--teal);border-color:rgba(45,224,204,.25);}
+
+/* ── SEARCH ── */
+.search-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:300;display:none;flex-direction:column;padding:calc(var(--st)+14px) 14px 14px;}
+.search-ov.open{display:flex;}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--bg2);border:.5px solid var(--border2);border-radius:14px;padding:10px 14px;margin-bottom:14px;}
+.search-bar input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);font-family:inherit;}
+.search-bar input::placeholder{color:var(--text3);}
+.search-results{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;}
+.sr-item{background:var(--card);border:.5px solid var(--border);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.sr-type{font-size:18px;width:28px;flex-shrink:0;}
+.sr-info{flex:1;min-width:0;}
+.sr-name{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sr-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+.sr-amt{font-size:13px;font-weight:700;color:var(--teal);flex-shrink:0;}
+.sr-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
+
 /* ── KURGU ── */
 .ku-doctor-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:0;}
 .ku-doctor-head{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
@@ -313,6 +336,7 @@ textarea.fi{resize:none;height:72px;}
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
+      <div onclick="openSearch()" style="width:34px;height:34px;border-radius:50%;background:var(--bg3);border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;">🔍</div>
       <div class="sync-dot" id="sync-dot" onclick="openModal('modal-sync')" title="Senkronizasyon"></div>
       <div class="hdr-add" onclick="openAddMenu()">+</div>
     </div>
@@ -455,6 +479,21 @@ textarea.fi{resize:none;height:72px;}
         <div><div style="font-size:14px;font-weight:700;">Kurgu Ekle</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">GMNDİJİTAL kurgu kaydı</div></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-ov" id="search-ov">
+  <div class="search-bar">
+    <span style="font-size:16px;">🔍</span>
+    <input id="search-input" type="search" placeholder="Müşteri, lokasyon, tutar ara…" oninput="doSearch(this.value)" autocomplete="off" autocorrect="off">
+    <span style="color:var(--text2);font-size:22px;cursor:pointer;padding:0 4px;" onclick="closeSearch()">✕</span>
+  </div>
+  <div class="search-results" id="search-results">
+    <div class="sr-empty">Aramak için yazmaya başla</div>
   </div>
 </div>
 
@@ -682,11 +721,111 @@ textarea.fi{resize:none;height:72px;}
     <div class="modal-handle"></div>
     <div class="modal-hdr"><div class="modal-title" id="det-name">-</div><div class="modal-close" onclick="closeModal('modal-detail')">✕</div></div>
     <div id="det-body"></div>
-    <div style="padding:0 18px 6px;"><button class="btn-p" id="det-edit-btn">Düzenle</button></div>
+    <div style="padding:0 18px 6px;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn-p" id="det-edit-btn">Düzenle</button>
+      <button id="det-wa-btn" onclick="shareWhatsApp()" style="width:100%;background:rgba(37,211,102,.12);color:#25D366;border:.5px solid rgba(37,211,102,.3);border-radius:13px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📲 WhatsApp'ta Paylaş</button>
+    </div>
   </div>
 </div>
 
 <script>
+/* ══ TOAST ══ */
+function toast(msg, type='', dur=2800){
+  const wrap=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.className='toast'+(type?' '+type:'');
+  el.textContent=msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},dur);
+  if(navigator.vibrate)navigator.vibrate(type==='err'?[10,5,10]:30);
+}
+
+/* ══ SEARCH ══ */
+let _curDetail=null;
+function openSearch(){
+  document.getElementById('search-ov').classList.add('open');
+  setTimeout(()=>document.getElementById('search-input').focus(),200);
+}
+function closeSearch(){
+  document.getElementById('search-ov').classList.remove('open');
+  document.getElementById('search-input').value='';
+  document.getElementById('search-results').innerHTML='<div class="sr-empty">Aramak için yazmaya başla</div>';
+}
+function doSearch(q){
+  q=q.trim().toLowerCase();
+  const el=document.getElementById('search-results');
+  if(!q){el.innerHTML='<div class="sr-empty">Aramak için yazmaya başla</div>';return;}
+  const results=[];
+  cekimler.forEach(c=>{
+    if((c.name||'').toLowerCase().includes(q)||(c.location||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(String(c.amount||'')).includes(q)){
+      results.push({type:'cekim',icon:'📷',name:c.name,sub:(c.location||c.type||'')+'  ·  '+fDate(c.date),amt:c.amount?fmt(c.amount):'',obj:c});
+    }
+  });
+  finanslar.forEach(f=>{
+    if((f.desc||'').toLowerCase().includes(q)||(f.cat||'').toLowerCase().includes(q)||(String(f.amount||'')).includes(q)){
+      results.push({type:'finans',icon:f.type==='income'?'💰':'💸',name:f.desc,sub:f.cat+'  ·  '+fDate(f.date),amt:fmt(f.amount),obj:f});
+    }
+  });
+  kurguEntries.forEach(e=>{
+    if((e.doctorName||'').toLowerCase().includes(q)||(e.notes||'').toLowerCase().includes(q)){
+      results.push({type:'kurgu',icon:'✂️',name:e.doctorName,sub:e.count+' kurgu  ·  '+fDate(e.date),amt:fmt((e.count||0)*(e.price||0)),obj:e});
+    }
+  });
+  if(!results.length){el.innerHTML='<div class="sr-empty">Sonuç bulunamadı</div>';return;}
+  el.innerHTML=results.slice(0,20).map((r,i)=>`<div class="sr-item" onclick="srTap(${i})"><div class="sr-type">${r.icon}</div><div class="sr-info"><div class="sr-name">${r.name}</div><div class="sr-sub">${r.sub}</div></div><div class="sr-amt">${r.amt}</div></div>`).join('');
+  el._results=results;
+}
+function srTap(i){
+  const results=document.getElementById('search-results')._results;
+  if(!results)return;
+  const r=results[i];
+  closeSearch();
+  if(r.type==='cekim')setTimeout(()=>{_curDetail=r.obj;openDetail(r.obj);},200);
+}
+
+/* ══ WHATSAPP SHARE ══ */
+function shareWhatsApp(){
+  if(!_curDetail)return;
+  const c=_curDetail;
+  const pi=partialInfo(c);
+  const stTxt=c.status==='paid'?'✅ Ödendi':c.status==='pending'?'⏳ Bekliyor':'❌ İptal';
+  const lines=[
+    '*CLENSMEDYA — Çekim Bilgisi*',
+    '─────────────────',
+    '👤 *'+c.name+'*',
+    '📅 '+fDate(c.date),
+    c.location?'📍 '+c.location:'',
+    c.type?'🏷 '+c.type:'',
+    '💰 '+fmt(c.amount||0),
+    pi&&pi.remaining>0?'   ✓ Alınan: '+fmt(pi.paid)+'  |  Kalan: '+fmt(pi.remaining):'',
+    '💳 '+stTxt,
+    c.notes?'📝 '+c.notes:'',
+    '─────────────────',
+  ].filter(Boolean).join('\n');
+  const url='https://wa.me/?text='+encodeURIComponent(lines);
+  window.open(url,'_blank');
+}
+
+/* ══ SWIPE NAVIGATION ══ */
+(function(){
+  const pages=['ozet','takvim','odemeler','projeler','kurgu','finans'];
+  let sx=0,sy=0;
+  document.getElementById('app').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.getElementById('app').addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.8)return;
+    const cur=document.querySelector('.page.active');
+    if(!cur)return;
+    const idx=pages.indexOf(cur.id.replace('page-',''));
+    if(idx<0)return;
+    const next=dx<0?Math.min(idx+1,pages.length-1):Math.max(idx-1,0);
+    if(next===idx)return;
+    switchPage(pages[next],document.getElementById('nav-'+pages[next]));
+  },{passive:true});
+})();
+
 /* ══ STORE KEYS ══ */
 const SK_C='cm_cekimler_v2', SK_P='cm_projeler_v2', SK_F='cm_finans_v2';
 const SK_KD='cm_kurgu_doctors_v1', SK_KE='cm_kurgu_entries_v1';
@@ -1086,21 +1225,21 @@ function editKurguEntry(id){
 }
 function saveKurgu(){
   const docId=document.getElementById('f-ku-doctor').value;
-  if(!docId){alert('Doktor seçiniz!');return;}
+  if(!docId){toast('Doktor seçiniz!','err');return;}
   const doc=kurguDoctors.find(d=>d.id===docId);
   const date=document.getElementById('f-ku-date').value;
-  if(!date){alert('Tarih zorunlu!');return;}
+  if(!date){toast('Tarih zorunlu!','err');return;}
   const count=Number(document.getElementById('f-ku-count').value)||1;
   const price=Number(document.getElementById('f-ku-price').value)||0;
   const e={id:editingKuid||uid(),doctorId:docId,doctorName:doc?.name||'',spec:doc?.spec||'',date,count,price,status:selStatusKu,notes:document.getElementById('f-ku-notes').value.trim()};
   if(editingKuid){const i=kurguEntries.findIndex(x=>x.id===editingKuid);if(i>-1)kurguEntries[i]=e;}
   else kurguEntries.unshift(e);
-  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;
+  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;toast('Kurgu kaydedildi ✓','ok');
 }
 function delKurgu(){
   if(!editingKuid||!confirm('Bu kurgu kaydını silmek istediğine emin misin?'))return;
   kurguEntries=kurguEntries.filter(x=>x.id!==editingKuid);
-  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;
+  saveKE();closeModal('modal-kurgu');renderKurgu();editingKuid=null;toast('Kurgu kaydedildi ✓','ok');
 }
 
 /* ── Doktor CRUD ── */
@@ -1251,20 +1390,20 @@ function editCekim(id){
 }
 function saveCekim(){
   const name=document.getElementById('f-name').value.trim();
-  if(!name){alert('Müşteri adı zorunlu!');return;}
+  if(!name){toast('Müşteri adı zorunlu!','err');return;}
   const date=document.getElementById('f-date').value;
-  if(!date){alert('Tarih zorunlu!');return;}
+  if(!date){toast('Tarih zorunlu!','err');return;}
   const totalAmt=Number(document.getElementById('f-amount').value)||0;
   const paidAmt=Number(document.getElementById('f-paid').value)||0;
   const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,amount:totalAmt,paidAmount:paidAmt,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
   if(editingCid){const i=cekimler.findIndex(x=>x.id===editingCid);if(i>-1)cekimler[i]=c;}
   else cekimler.unshift(c);
-  saveC();closeModal('modal-cekim');refreshAll();
+  saveC();closeModal('modal-cekim');refreshAll();toast(editingCid?'Çekim güncellendi ✓':'Çekim eklendi ✓','ok');
 }
 function delCekim(){
-  if(!editingCid||!confirm('Bu çekimi silmek istediğine emin misin?'))return;
+  if(!editingCid)return;
   cekimler=cekimler.filter(x=>x.id!==editingCid);
-  saveC();closeModal('modal-cekim');refreshAll();
+  saveC();closeModal('modal-cekim');refreshAll();toast('Çekim silindi','err');
 }
 
 /* ══ FİNANS CRUD ══ */
@@ -1284,20 +1423,20 @@ function editFinans(id){
 }
 function saveFinans(){
   const desc=document.getElementById('f-fin-desc').value.trim();
-  if(!desc){alert('Açıklama zorunlu!');return;}
+  if(!desc){toast('Açıklama zorunlu!','err');return;}
   const amount=Number(document.getElementById('f-fin-amt').value);
-  if(!amount){alert('Tutar zorunlu!');return;}
+  if(!amount){toast('Tutar zorunlu!','err');return;}
   const date=document.getElementById('f-fin-date').value;
-  if(!date){alert('Tarih zorunlu!');return;}
+  if(!date){toast('Tarih zorunlu!','err');return;}
   const f={id:editingFid||uid(),type:formFinType,desc,amount,date,cat:document.getElementById('f-fin-cat').value,notes:document.getElementById('f-fin-notes').value.trim()};
   if(editingFid){const i=finanslar.findIndex(x=>x.id===editingFid);if(i>-1)finanslar[i]=f;}
   else finanslar.unshift(f);
-  saveF();closeModal('modal-fin');renderFinans();
+  saveF();closeModal('modal-fin');renderFinans();toast('Finans kaydedildi ✓','ok');
 }
 function delFinans(){
-  if(!editingFid||!confirm('Bu kaydı silmek istediğine emin misin?'))return;
+  if(!editingFid)return;
   finanslar=finanslar.filter(x=>x.id!==editingFid);
-  saveF();closeModal('modal-fin');renderFinans();editingFid=null;
+  saveF();closeModal('modal-fin');renderFinans();editingFid=null;toast('Kayıt silindi','err');
 }
 
 /* ══ PROJE CRUD ══ */
@@ -1330,7 +1469,7 @@ function addPrjItemRow(city='',days='',rate='5500',status='aktif',payment=''){
 }
 function saveProje(){
   const name=document.getElementById('f-pname').value.trim();
-  if(!name){alert('Proje adı zorunlu!');return;}
+  if(!name){toast('Proje adı zorunlu!','err');return;}
   const items=[];
   document.querySelectorAll('[id^="pi-city-"]').forEach(el=>{
     const id=el.id.split('-').pop();
@@ -1340,7 +1479,7 @@ function saveProje(){
     items.push({city,days,dayRate:rate,totalDays:days,status:document.getElementById('pi-status-'+id).value,payment:document.getElementById('pi-pay-'+id).value});
   });
   projeler.push({id:uid(),name,desc:document.getElementById('f-pdesc').value.trim(),items});
-  saveP();closeModal('modal-prj');renderProjeler();
+  saveP();closeModal('modal-prj');renderProjeler();toast('Proje eklendi ✓','ok');
   document.getElementById('f-pname').value='';document.getElementById('f-pdesc').value='';
   document.getElementById('prj-items-form').innerHTML='';prjItemRows=0;
 }
@@ -1348,6 +1487,7 @@ function saveProje(){
 /* ══ DETAIL ══ */
 function openDetail(c){
   if(!c)return;
+  _curDetail=c;
   document.getElementById('det-name').textContent=c.name;
   document.getElementById('det-edit-btn').onclick=()=>editCekim(c.id);
   const stLabel=c.status==='paid'?'✅ Ödendi':c.status==='pending'?'⏳ Bekliyor':'❌ İptal';
