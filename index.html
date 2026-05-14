@@ -485,6 +485,7 @@ textarea.fi{resize:none;height:72px;}
       </div>
       <div class="fr">
         <div class="fg"><label class="fl">Tarih *</label><input class="fi" id="f-date" type="date"></div>
+        <div class="fg"><label class="fl">Saat</label><input class="fi" id="f-time" type="time" placeholder="--:--"></div>
         <div class="fg"><label class="fl">Tip</label>
           <select class="fi" id="f-type">
             <option value="Periyodik">Periyodik</option>
@@ -1292,6 +1293,7 @@ function openAddCekim(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-date').value=calY+'-'+(String(calM+1).padStart(2,'0'))+'-'+(String(NOW.getDate()).padStart(2,'0'));
+  document.getElementById('f-time').value='';
   document.getElementById('f-amount').value='';
   document.getElementById('f-paid').value='';
   document.getElementById('f-paid-preview').textContent='';
@@ -1315,6 +1317,7 @@ function editCekim(id){
     document.getElementById('f-name').value=c.name||'';
     document.getElementById('f-phone').value=c.phone||'';
     document.getElementById('f-date').value=c.date||'';
+    document.getElementById('f-time').value=c.time||'';
     document.getElementById('f-amount').value=c.amount||'';
     document.getElementById('f-paid').value=c.paidAmount||'';
     updatePaidPreview();
@@ -1335,7 +1338,8 @@ function saveCekim(){
   if(!date){toast('Tarih zorunlu!','err');return;}
   const totalAmt=Number(document.getElementById('f-amount').value)||0;
   const paidAmt=Number(document.getElementById('f-paid').value)||0;
-  const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,amount:totalAmt,paidAmount:paidAmt,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
+  const time=document.getElementById('f-time').value||'';
+  const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,time,amount:totalAmt,paidAmount:paidAmt,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
   if(editingCid){const i=cekimler.findIndex(x=>x.id===editingCid);if(i>-1)cekimler[i]=c;}
   else cekimler.unshift(c);
   saveC();closeModal('modal-cekim');refreshAll();toast(editingCid?'Çekim güncellendi ✓':'Çekim eklendi ✓','ok');
@@ -1443,7 +1447,7 @@ function openDetail(c){
       <div style="margin-top:8px;"><span class="pay-quick" style="font-size:11px;" onclick="closeModal('modal-detail');setTimeout(()=>editCekim('${c.id}'),300)">+ Ödeme Al / Güncelle</span></div>
     </div>`:''}
     <div class="det-sec">
-      <div class="det-row"><div class="det-ico">📅</div><div><div class="det-k">Çekim Tarihi</div><div class="det-v">${fDate(c.date)}</div></div></div>
+      <div class="det-row"><div class="det-ico">📅</div><div><div class="det-k">Çekim Tarihi</div><div class="det-v">${fDate(c.date)}${c.time?' · '+c.time:''}</div></div></div>
       ${c.phone?`<div class="det-row"><div class="det-ico">📞</div><div><div class="det-k">Telefon</div><div class="det-v"><a href="tel:${c.phone}" style="color:var(--teal);text-decoration:none">${c.phone}</a></div></div></div>`:''}
       ${c.location?`<div class="det-row"><div class="det-ico">📍</div><div><div class="det-k">Lokasyon</div><div class="det-v">${c.location}</div></div></div>`:''}
       ${c.type?`<div class="det-row"><div class="det-ico">🏷</div><div><div class="det-k">Tip</div><div class="det-v">${c.type}</div></div></div>`:''}
