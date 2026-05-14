@@ -812,18 +812,25 @@ const DEF_FINANS=[
 ];
 
 /* ══ LOAD / SAVE ══ */
+const SK_TS='cm_local_ts'; // yerel son değişiklik zamanı
+
 function load(){
-  try{const d=localStorage.getItem(SK_C); cekimler=d?JSON.parse(d):DEF_CEKIMLER; if(!d)localStorage.setItem(SK_C,JSON.stringify(cekimler));}catch{cekimler=DEF_CEKIMLER;}
-  try{const d=localStorage.getItem(SK_P); projeler=d?JSON.parse(d):DEF_PROJELER; if(!d)localStorage.setItem(SK_P,JSON.stringify(projeler));}catch{projeler=DEF_PROJELER;}
-  try{const d=localStorage.getItem(SK_F); finanslar=d?JSON.parse(d):DEF_FINANS; if(!d)localStorage.setItem(SK_F,JSON.stringify(finanslar));}catch{finanslar=DEF_FINANS;}
-  try{const d=localStorage.getItem(SK_KD); kurguDoctors=d?JSON.parse(d):DEF_KURGU_DOCTORS; if(!d)localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}catch{kurguDoctors=DEF_KURGU_DOCTORS;}
-  try{const d=localStorage.getItem(SK_KE); kurguEntries=d?JSON.parse(d):DEF_KURGU_ENTRIES; if(!d)localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}catch{kurguEntries=DEF_KURGU_ENTRIES;}
+  try{const d=localStorage.getItem(SK_C); cekimler=d?JSON.parse(d):DEF_CEKIMLER; if(!d)localStorage.setItem(SK_C,JSON.stringify(cekimler));}catch{cekimler=DEF_CEKIMLER;localStorage.setItem(SK_C,JSON.stringify(cekimler));}
+  try{const d=localStorage.getItem(SK_P); projeler=d?JSON.parse(d):DEF_PROJELER; if(!d)localStorage.setItem(SK_P,JSON.stringify(projeler));}catch{projeler=DEF_PROJELER;localStorage.setItem(SK_P,JSON.stringify(projeler));}
+  try{const d=localStorage.getItem(SK_F); finanslar=d?JSON.parse(d):DEF_FINANS; if(!d)localStorage.setItem(SK_F,JSON.stringify(finanslar));}catch{finanslar=DEF_FINANS;localStorage.setItem(SK_F,JSON.stringify(finanslar));}
+  try{const d=localStorage.getItem(SK_KD); kurguDoctors=d?JSON.parse(d):DEF_KURGU_DOCTORS; if(!d)localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}catch{kurguDoctors=DEF_KURGU_DOCTORS;localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}
+  try{const d=localStorage.getItem(SK_KE); kurguEntries=d?JSON.parse(d):DEF_KURGU_ENTRIES; if(!d)localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}catch{kurguEntries=DEF_KURGU_ENTRIES;localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}
 }
-function saveC(){localStorage.setItem(SK_C,JSON.stringify(cekimler));pushToFirebase();}
-function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));pushToFirebase();}
-function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));pushToFirebase();}
-function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));pushToFirebase();}
-function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));pushToFirebase();}
+
+function _ts(){return Date.now();}
+function _saveTs(){localStorage.setItem(SK_TS,_ts().toString());}
+function _localTs(){return parseInt(localStorage.getItem(SK_TS)||'0');}
+
+function saveC(){localStorage.setItem(SK_C,JSON.stringify(cekimler));_saveTs();pushToFirebase();}
+function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));_saveTs();pushToFirebase();}
+function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));_saveTs();pushToFirebase();}
+function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));_saveTs();pushToFirebase();}
+function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));_saveTs();pushToFirebase();}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
 /* ══ UTILS ══ */
@@ -1535,10 +1542,11 @@ async function connectSync(){
     syncDb=firebase.firestore();
     syncCode=code;
     syncEnabled=true;
-    // İlk push: yerel veriyi Firebase'e yükle
+    // İlk push: yerel veriyi Firebase'e yükle (yerel her zaman öncelikli)
+    _saveTs();
     await syncDb.collection('workspaces').doc(syncCode).set(
       {cekimler,projeler,finanslar,kurguDoctors,kurguEntries,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},
-      {merge:true}
+      {merge:false}
     );
     // Dinlemeye başla
     if(syncUnsub)syncUnsub();
@@ -1546,6 +1554,17 @@ async function connectSync(){
       if(!snap.exists||isRemoteUpdate)return;
       const data=snap.data();
       if(!data)return;
+
+      // Yerel veri daha yeniyse Firebase'i güncelle, verileri alma
+      const remoteTs=data.updatedAt?.seconds?data.updatedAt.seconds*1000:0;
+      const localTs=_localTs();
+      if(localTs>remoteTs+2000){
+        // Yerel daha yeni — sunucuya gönder, alma
+        pushToFirebase();
+        setSyncDot('ok');
+        return;
+      }
+
       isRemoteUpdate=true;
       if(data.cekimler){cekimler=data.cekimler;localStorage.setItem(SK_C,JSON.stringify(cekimler));}
       if(data.projeler){projeler=data.projeler;localStorage.setItem(SK_P,JSON.stringify(projeler));}
