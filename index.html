@@ -13,7 +13,7 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/'})
+    navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/',updateViaCache:'none'})
       .then(r=>{
         r.addEventListener('updatefound',()=>{
           const w=r.installing;
