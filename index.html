@@ -197,6 +197,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 /* + gün butonu */
 .day-add-btn{width:30px;height:30px;background:var(--teal2);border:.5px solid rgba(45,224,204,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--teal);font-size:20px;font-weight:700;flex-shrink:0;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-touch-callout:none;}
 .day-add-btn:active{background:var(--teal3);}
+.prj-action-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+.prj-edit-btn{background:rgba(99,102,241,.12);border:.5px solid rgba(99,102,241,.3);color:#818cf8;}
+.prj-edit-btn:active{background:rgba(99,102,241,.25);}
+.prj-del-btn{background:var(--red2);border:.5px solid rgba(239,68,68,.3);color:var(--red);}
+.prj-del-btn:active{background:rgba(239,68,68,.25);}
+.prj-pay-tap{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+.prj-pay-tap:active{opacity:.7;}
 
 /* ── FİNANS ── */
 .fin-toggle{display:flex;margin:12px 14px 0;background:var(--bg3);border-radius:12px;padding:3px;gap:3px;}
@@ -568,7 +575,7 @@ textarea.fi{resize:none;height:72px;}
 <div class="ov" id="modal-prj" onclick="closeModal('modal-prj',event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-hdr"><div class="modal-title">Yeni Proje</div><div class="modal-close" onclick="closeModal('modal-prj')">✕</div></div>
+    <div class="modal-hdr"><div class="modal-title" id="prj-modal-title">Yeni Proje</div><div class="modal-close" onclick="closeModal('modal-prj');_editPrjId=null;document.getElementById('prj-modal-title').textContent='Yeni Proje';">✕</div></div>
     <div class="fb">
       <div class="fg"><label class="fl">Proje Adı *</label><input class="fi" id="f-pname" type="text" placeholder="ör. Kültür Yolu" autocomplete="off"></div>
       <div class="fg"><label class="fl">Açıklama</label><input class="fi" id="f-pdesc" type="text" placeholder="Kısa açıklama" autocomplete="off"></div>
@@ -1027,11 +1034,20 @@ function renderProjeler(){
     return`<div class="prj-card">
       <div class="prj-head">
         <div><div class="prj-name">${p.name}</div><div class="prj-desc">${p.desc||''}</div></div>
-        <div><div class="prj-total">${fmt(totalEarned)}</div><div class="prj-total-lbl">${p.items.length} şehir</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="prj-action-btn prj-edit-btn" onclick="editProje('${p.id}')">✏️</div>
+            <div class="prj-action-btn prj-del-btn" onclick="deleteProje('${p.id}')">−</div>
+          </div>
+          <div><div class="prj-total">${fmt(totalEarned)}</div><div class="prj-total-lbl">${p.items.length} şehir</div></div>
+        </div>
       </div>
       <div class="prj-progress"><div class="prj-progress-bar" style="width:${pct}%"></div></div>
       <div class="prj-items">${p.items.map((i,idx)=>{
         const amt=i.days*i.dayRate;
+        const payLabel=i.payment==='alinmadi'?'Alınmadı':i.payment==='alindi'?'Alındı':'Ödeme?';
+        const payClass=i.payment==='alindi'?'alindi':i.payment==='alinmadi'?'alinmadi':'';
+        const payStyle=!i.payment?'background:rgba(255,255,255,.06);border:.5px dashed var(--border2);color:var(--text3);':'';
         return`<div class="prj-row">
           <div class="day-add-btn" onclick="addDay('${p.id}',${idx})">+</div>
           <div style="flex:1;min-width:0;">
@@ -1042,13 +1058,48 @@ function renderProjeler(){
             <div class="prj-row-amt">${fmt(amt)}</div>
             <div style="display:flex;gap:4px;justify-content:flex-end;margin-top:3px;">
               <span class="prj-status ${i.status}">${i.status==='bitti'?'Bitti':i.status==='devam'?'Devam':'Aktif'}</span>
-              ${i.payment?`<span class="prj-pay ${i.payment}">${i.payment==='alinmadi'?'Alınmadı':'Alındı'}</span>`:''}
+              <span class="prj-pay ${payClass} prj-pay-tap" style="${payStyle}" onclick="togglePay('${p.id}',${idx})">${payLabel}</span>
             </div>
           </div>
         </div>`;
       }).join('')}</div>
     </div>`;
   }).join('');
+}
+
+/* ── PROJE SİL ── */
+function deleteProje(pid){
+  const p=projeler.find(x=>x.id===pid);
+  if(!p)return;
+  if(!confirm(`"${p.name}" projesini silmek istediğine emin misin?`))return;
+  projeler=projeler.filter(x=>x.id!==pid);
+  saveP();renderProjeler();toast('Proje silindi','ok');
+}
+
+/* ── ÖDEME TOGGLE ── */
+function togglePay(pid,idx){
+  const p=projeler.find(x=>x.id===pid);
+  if(!p)return;
+  const item=p.items[idx];
+  const states=['','alinmadi','alindi'];
+  const cur=states.indexOf(item.payment||'');
+  item.payment=states[(cur+1)%states.length];
+  saveP();renderProjeler();
+}
+
+/* ── PROJE DÜZENLE ── */
+let _editPrjId=null;
+function editProje(pid){
+  const p=projeler.find(x=>x.id===pid);
+  if(!p)return;
+  _editPrjId=pid;
+  document.getElementById('prj-modal-title').textContent='Projeyi Düzenle';
+  document.getElementById('f-pname').value=p.name;
+  document.getElementById('f-pdesc').value=p.desc||'';
+  document.getElementById('prj-items-form').innerHTML='';
+  prjItemRows=0;
+  p.items.forEach(i=>addPrjItemRow(i.city,i.days,i.dayRate,i.status,i.payment||''));
+  openModal('modal-prj');
 }
 
 /* ++ GÜN EKLE — her tıkta +1 gün, 5500₺ sabit oran, kaydeder */
@@ -1422,10 +1473,20 @@ function saveProje(){
     const rate=Number(document.getElementById('pi-rate-'+id).value)||5500;
     items.push({city,days,dayRate:rate,totalDays:days,status:document.getElementById('pi-status-'+id).value,payment:document.getElementById('pi-pay-'+id).value});
   });
-  projeler.push({id:uid(),name,desc:document.getElementById('f-pdesc').value.trim(),items});
-  saveP();closeModal('modal-prj');renderProjeler();toast('Proje eklendi ✓','ok');
+  const desc=document.getElementById('f-pdesc').value.trim();
+  if(_editPrjId){
+    const idx=projeler.findIndex(p=>p.id===_editPrjId);
+    if(idx>-1) projeler[idx]={...projeler[idx],name,desc,items};
+    _editPrjId=null;
+    toast('Proje güncellendi ✓','ok');
+  } else {
+    projeler.push({id:uid(),name,desc,items});
+    toast('Proje eklendi ✓','ok');
+  }
+  saveP();closeModal('modal-prj');renderProjeler();
   document.getElementById('f-pname').value='';document.getElementById('f-pdesc').value='';
   document.getElementById('prj-items-form').innerHTML='';prjItemRows=0;
+  document.getElementById('prj-modal-title').textContent='Yeni Proje';
 }
 
 /* ══ DETAIL ══ */
