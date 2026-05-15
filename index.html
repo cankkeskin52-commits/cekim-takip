@@ -11,26 +11,45 @@
 <link rel="apple-touch-icon" href="/cekim-takip/icon.svg">
 <title>CLENSMEDYA</title>
 <script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/',updateViaCache:'none'})
-      .then(r=>{
-        r.addEventListener('updatefound',()=>{
-          const w=r.installing;
-          w.addEventListener('statechange',()=>{
-            if(w.state==='installed'&&navigator.serviceWorker.controller){
-              // Yeni sürüm hazır — otomatik yenile
-              window.location.reload();
-            }
+// ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
+const APP_VER = '2025-05-15-v3';
+(async()=>{
+  const stored = localStorage.getItem('app_ver');
+  if(stored !== APP_VER){
+    // Tüm SW kayıtlarını sil
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    // Tüm cache'leri temizle
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    localStorage.setItem('app_ver', APP_VER);
+    window.location.reload(true);
+    return;
+  }
+  // Normal SW kaydı
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('/cekim-takip/sw.js',{scope:'/cekim-takip/',updateViaCache:'none'})
+        .then(r=>{
+          r.addEventListener('updatefound',()=>{
+            const w=r.installing;
+            w.addEventListener('statechange',()=>{
+              if(w.state==='installed'&&navigator.serviceWorker.controller){
+                window.location.reload();
+              }
+            });
           });
         });
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        window.location.reload();
       });
-    // SW değişince sayfayı yenile (skipWaiting sonrası)
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      window.location.reload();
     });
-  });
-}
+  }
+})();
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
