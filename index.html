@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2025-05-15-v3';
+const APP_VER = '2026-05-16-v1';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -365,8 +365,6 @@ textarea.fi{resize:none;height:72px;}
     <div class="dash-grid" id="dash-grid"></div>
     <div class="sec-lbl">Yaklaşan Çekimler</div>
     <div class="upcoming" id="upcoming-list"></div>
-    <div class="sec-lbl" id="prj-sec-lbl">Aktif Projeler</div>
-    <div id="ozet-prj-list" style="padding:0 14px;display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 
   <!-- TAKVİM -->
@@ -917,14 +915,6 @@ function renderOzet(){
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const ul=document.getElementById('upcoming-list');
   ul.innerHTML=up.length?up.map(c=>{const d=pDate(c.date);return`<div class="up-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div class="up-date"><div class="up-d">${d.getDate()}</div><div class="up-m">${MS[d.getMonth()]}</div></div><div class="up-info"><div class="up-name">${c.name}</div><div class="up-loc">${c.location||c.type||'—'}</div></div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span></div>`;}).join(''):'<div class="empty-s"><div class="ei">📭</div><div class="et">Yaklaşan çekim yok</div></div>';
-  const ap=projeler.filter(p=>p.items.some(i=>i.status!=='bitti'));
-  const ol=document.getElementById('ozet-prj-list');
-  document.getElementById('prj-sec-lbl').style.display=ap.length?'':'none';
-  ol.innerHTML=ap.map(p=>{
-    const total=p.items.reduce((s,i)=>s+i.days*i.dayRate,0);
-    const pend=p.items.filter(i=>i.payment==='alinmadi'&&i.days>0).reduce((s,i)=>s+i.days*i.dayRate,0);
-    return`<div class="dc c-teal" onclick="switchPage('projeler',document.getElementById('nav-projeler'))" style="cursor:pointer"><div class="dc-lbl">${p.name}</div><div class="dc-val teal">${fmt(total)}</div><div class="dc-sub">${fmt(pend)} alınmadı</div><div class="dc-ico">🎬</div></div>`;
-  }).join('');
 }
 
 /* ══ TAKVİM ══ */
