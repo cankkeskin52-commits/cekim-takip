@@ -898,8 +898,10 @@ function renderOzet(){
     if(c.status==='paid') return s+Number(c.amount||0);
     return s+Number(c.paidAmount||0);
   },0);
-  const pendingRemaining=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
-  const hasPartial=pend.some(c=>Number(c.paidAmount||0)>0);
+  // Bekleyen kart: tüm kayıtlar (ay filtresi yok) — Ödemeler sekmesiyle tutarlı
+  const globalPend=cekimler.filter(c=>c.status==='pending');
+  const pendingRemaining=globalPend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+  const hasPartial=globalPend.some(c=>Number(c.paidAmount||0)>0);
   // Finans kısmından bu ay gelir ve gider
   const mFinans=finanslar.filter(f=>{const d=pDate(f.date);return d&&d.getMonth()===ozetM&&d.getFullYear()===ozetY;});
   const sumFinGelir=mFinans.filter(f=>f.type==='income').reduce((s,f)=>s+Number(f.amount||0),0);
@@ -908,7 +910,7 @@ function renderOzet(){
   const net=sumFinGelir-sumGider;
   document.getElementById('dash-grid').innerHTML=`
     <div class="dc c-teal"><div class="dc-lbl">Bu Ay Gelir</div><div class="dc-val teal">${fmt(sumFinGelir)}</div><div class="dc-sub">${mFinans.filter(f=>f.type==='income').length} kayıt · Finans'tan</div><div class="dc-ico">📅</div></div>
-    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${pend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
+    <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${globalPend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
     <div class="dc c-red"><div class="dc-lbl">Bu Ay Gider</div><div class="dc-val red">${fmt(sumGider)}</div><div class="dc-sub">${mGider.length} kalem · Net ${net>=0?'+':''}${fmt(net)}</div><div class="dc-ico">💸</div></div>
     <div class="dc" style="--ac:rgba(45,224,204,.07);"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val teal">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
   const today=todayStr();
