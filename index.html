@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2026-05-19-v2';
+const APP_VER = '2026-05-19-v3';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -994,6 +994,9 @@ function renderOdemeler(){
     <div class="dc" style="--ac:rgba(167,139,250,.07)"><div class="dc-lbl">🔄 Sabit Müşteriler</div><div class="dc-val" style="color:var(--purple)">${fmt(rem(sabit))}</div><div class="dc-sub">${sabit.length} çekim bekliyor</div><div class="dc-ico">🔄</div></div>
     <div class="dc c-green wide"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid+sumPendReceived)}</div><div class="dc-sub">${paid.length} tam · ${partialCount} kısmi · ${other.length} diğer bekliyor</div><div class="dc-ico">✅</div></div>`;
   let html='';
+  if(paid.length){
+    html+=`<div class="od-section-lbl">✅ Ödenenler (${paid.length})</div><div class="od-list">${paid.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
   if(thisMonth.length){
     html+=`<div class="od-section-lbl">📅 Bu Ay Bekleyen (${thisMonth.length})</div><div class="od-list">${thisMonth.map(c=>odCardHtml(c)).join('')}</div>`;
   }
@@ -1002,9 +1005,6 @@ function renderOdemeler(){
   }
   if(other.length){
     html+=`<div class="od-section-lbl">⏳ Diğer Bekleyen (${other.length})</div><div class="od-list">${other.map(c=>odCardHtml(c)).join('')}</div>`;
-  }
-  if(paid.length){
-    html+=`<div class="od-section-lbl">✅ Ödenenler (${paid.length})</div><div class="od-list">${paid.map(c=>odCardHtml(c)).join('')}</div>`;
   }
   if(cancelled.length){
     html+=`<div class="od-section-lbl">❌ İptal (${cancelled.length})</div><div class="od-list">${cancelled.map(c=>odCardHtml(c)).join('')}</div>`;
@@ -1419,12 +1419,31 @@ function saveCekim(){
   const c={id:editingCid||uid(),name,phone:document.getElementById('f-phone').value.trim(),date,time,amount:totalAmt,paidAmount:paidAmt,location:document.getElementById('f-loc').value.trim(),status:selStatus,type:document.getElementById('f-type').value,notes:document.getElementById('f-notes').value.trim()};
   if(editingCid){const i=cekimler.findIndex(x=>x.id===editingCid);if(i>-1)cekimler[i]=c;}
   else cekimler.unshift(c);
+  _syncCekimGelir(c);
   saveC();closeModal('modal-cekim');refreshAll();toast(editingCid?'Çekim güncellendi ✓':'Çekim eklendi ✓','ok');
+}
+function _syncCekimGelir(c){
+  // Alınan tutar: tam ödendiyse toplam ücret, kısmi ise paidAmount
+  const alınan = c.status==='paid' ? Number(c.amount||0) : Number(c.paidAmount||0);
+  const existing = finanslar.find(f=>f.cekimId===c.id);
+  if(alınan > 0){
+    const desc = c.name + (c.location?' · '+c.location:'');
+    if(existing){
+      existing.amount=alınan; existing.date=c.date; existing.desc=desc;
+    } else {
+      finanslar.unshift({id:uid(),cekimId:c.id,type:'income',desc,amount:alınan,date:c.date,cat:'Çekim Geliri',notes:'📷 Otomatik'});
+    }
+  } else {
+    // Ödeme yoksa finans kaydını kaldır
+    finanslar=finanslar.filter(f=>f.cekimId!==c.id);
+  }
+  saveF();
 }
 function delCekim(){
   if(!editingCid)return;
   cekimler=cekimler.filter(x=>x.id!==editingCid);
-  saveC();closeModal('modal-cekim');refreshAll();toast('Çekim silindi','err');
+  finanslar=finanslar.filter(f=>f.cekimId!==editingCid);
+  saveC();saveF();closeModal('modal-cekim');refreshAll();toast('Çekim silindi','err');
 }
 
 /* ══ FİNANS CRUD ══ */
