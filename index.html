@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2026-05-19-v1';
+const APP_VER = '2026-05-19-v2';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -974,19 +974,34 @@ function ckSimpleHtml(c){
 
 /* ══ ÖDEMELER ══ */
 function renderOdemeler(){
-  const pending=cekimler.filter(c=>c.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));
+  const now=new Date(); const nm=now.getMonth(), ny=now.getFullYear();
+  const isThisMonth=c=>{const d=pDate(c.date);return d&&d.getMonth()===nm&&d.getFullYear()===ny;};
+  const allPending=cekimler.filter(c=>c.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));
+  // Bu ay bekleyen (tarih bu ay)
+  const thisMonth=allPending.filter(c=>isThisMonth(c));
+  // Sabit müşteriler — type=Sabit, bu ayda DEĞİL
+  const sabit=allPending.filter(c=>c.type==='Sabit'&&!isThisMonth(c));
+  // Diğer bekleyen
+  const other=allPending.filter(c=>!isThisMonth(c)&&c.type!=='Sabit');
   const paid=cekimler.filter(c=>c.status==='paid').sort((a,b)=>b.date.localeCompare(a.date));
   const cancelled=cekimler.filter(c=>c.status==='cancelled').sort((a,b)=>b.date.localeCompare(a.date));
-  const sumPendRemaining=pending.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
-  const sumPendReceived=pending.reduce((s,c)=>s+Number(c.paidAmount||0),0);
+  const rem=a=>a.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+  const sumPendReceived=allPending.reduce((s,c)=>s+Number(c.paidAmount||0),0);
   const sumPaid=paid.reduce((s,c)=>s+Number(c.amount||0),0);
-  const partialCount=pending.filter(c=>Number(c.paidAmount||0)>0).length;
+  const partialCount=allPending.filter(c=>Number(c.paidAmount||0)>0).length;
   document.getElementById('od-summary').innerHTML=`
-    <div class="dc c-gold"><div class="dc-lbl">Kalan Bekleyen</div><div class="dc-val gold">${fmt(sumPendRemaining)}</div><div class="dc-sub">${pending.length} çekim · ${partialCount>0?fmt(sumPendReceived)+' alındı':'hiç alınmadı'}</div><div class="dc-ico">⏳</div></div>
-    <div class="dc c-green"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid+sumPendReceived)}</div><div class="dc-sub">${paid.length} tam + ${partialCount} kısmi</div><div class="dc-ico">✅</div></div>`;
+    <div class="dc c-gold"><div class="dc-lbl">📅 Bu Ay</div><div class="dc-val gold">${fmt(rem(thisMonth))}</div><div class="dc-sub">${thisMonth.length} çekim bekliyor</div><div class="dc-ico">📅</div></div>
+    <div class="dc" style="--ac:rgba(167,139,250,.07)"><div class="dc-lbl">🔄 Sabit Müşteriler</div><div class="dc-val" style="color:var(--purple)">${fmt(rem(sabit))}</div><div class="dc-sub">${sabit.length} çekim bekliyor</div><div class="dc-ico">🔄</div></div>
+    <div class="dc c-green wide"><div class="dc-lbl">Toplam Ödendi</div><div class="dc-val green">${fmt(sumPaid+sumPendReceived)}</div><div class="dc-sub">${paid.length} tam · ${partialCount} kısmi · ${other.length} diğer bekliyor</div><div class="dc-ico">✅</div></div>`;
   let html='';
-  if(pending.length){
-    html+=`<div class="od-section-lbl">⏳ Bekleyenler (${pending.length})</div><div class="od-list">${pending.map(c=>odCardHtml(c)).join('')}</div>`;
+  if(thisMonth.length){
+    html+=`<div class="od-section-lbl">📅 Bu Ay Bekleyen (${thisMonth.length})</div><div class="od-list">${thisMonth.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
+  if(sabit.length){
+    html+=`<div class="od-section-lbl">🔄 Sabit Müşteriler (${sabit.length})</div><div class="od-list">${sabit.map(c=>odCardHtml(c)).join('')}</div>`;
+  }
+  if(other.length){
+    html+=`<div class="od-section-lbl">⏳ Diğer Bekleyen (${other.length})</div><div class="od-list">${other.map(c=>odCardHtml(c)).join('')}</div>`;
   }
   if(paid.length){
     html+=`<div class="od-section-lbl">✅ Ödenenler (${paid.length})</div><div class="od-list">${paid.map(c=>odCardHtml(c)).join('')}</div>`;
