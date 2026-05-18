@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2026-05-19-v3';
+const APP_VER = '2026-05-19-v4';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -224,6 +224,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .prj-pay-tap{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
 .prj-pay-tap:active{opacity:.7;}
 
+/* ── MÜŞTERİLER ── */
+.ms-card{background:var(--card);border:.5px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;}
+.ms-head{padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.ms-name{font-size:15px;font-weight:800;letter-spacing:-.3px;}
+.ms-phone{font-size:11px;color:var(--text2);margin-top:2px;}
+.ms-pend{font-size:18px;font-weight:800;color:var(--gold);}
+.ms-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:.5px solid var(--border);}
+.ms-stat{padding:10px;text-align:center;}
+.ms-stat+.ms-stat{border-left:.5px solid var(--border);}
+.ms-stat-val{font-size:13px;font-weight:700;}
+.ms-stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.08em;}
+.ms-list{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
+
 /* ── FİNANS ── */
 .fin-toggle{display:flex;margin:12px 14px 0;background:var(--bg3);border-radius:12px;padding:3px;gap:3px;}
 .fin-tab{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:600;border-radius:9px;cursor:pointer;color:var(--text2);transition:all .2s;}
@@ -397,12 +410,9 @@ textarea.fi{resize:none;height:72px;}
   </div>
 
   <!-- PROJELER -->
-  <div class="page" id="page-projeler">
-    <div style="padding:12px 18px 6px;">
-      <div style="font-size:16px;font-weight:700;">Projeler</div>
-    </div>
-    <div class="prj-list" id="prj-list"></div>
-    <div class="prj-add-btn" onclick="openModal('modal-prj')">+ Yeni Proje</div>
+  <div class="page" id="page-musteriler">
+    <div class="dash-grid" id="ms-summary" style="margin-bottom:4px;"></div>
+    <div id="musteriler-content"></div>
   </div>
 
   <!-- KURGU -->
@@ -453,8 +463,8 @@ textarea.fi{resize:none;height:72px;}
     <div class="bnav-item" id="nav-odemeler" onclick="switchPage('odemeler',this)">
       <div class="bnav-icon">💳</div><div class="bnav-label">Ödemeler</div>
     </div>
-    <div class="bnav-item" id="nav-projeler" onclick="switchPage('projeler',this)">
-      <div class="bnav-icon">🎬</div><div class="bnav-label">Projeler</div>
+    <div class="bnav-item" id="nav-musteriler" onclick="switchPage('musteriler',this)">
+      <div class="bnav-icon">👥</div><div class="bnav-label">Müşteriler</div>
     </div>
     <div class="bnav-item" id="nav-kurgu" onclick="switchPage('kurgu',this)">
       <div class="bnav-icon">✂️</div><div class="bnav-label">Kurgu</div>
@@ -767,7 +777,7 @@ function shareWhatsApp(){
 
 /* ══ SWIPE NAVIGATION ══ */
 (function(){
-  const pages=['ozet','takvim','odemeler','projeler','kurgu','finans'];
+  const pages=['ozet','takvim','odemeler','musteriler','kurgu','finans'];
   let sx=0,sy=0;
   document.getElementById('app').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
   document.getElementById('app').addEventListener('touchend',e=>{
@@ -876,7 +886,7 @@ function switchPage(p,el){
   if(p==='ozet') renderOzet();
   if(p==='takvim') renderCal();
   if(p==='odemeler') renderOdemeler();
-  if(p==='projeler') renderProjeler();
+  if(p==='musteriler') renderMusteriler();
   if(p==='kurgu') renderKurgu();
   if(p==='finans') renderFinans();
 }
@@ -1044,6 +1054,56 @@ function odCardHtml(c){
       ${pi&&pi.remaining>0?`<div style="font-size:9px;color:var(--text3);margin-top:1px;">kalan</div>`:''}
       ${cBadge(c)}
       ${c.status!=='paid'&&c.status!=='cancelled'?`<div style="margin-top:5px;"><span class="pay-quick" onclick="event.stopPropagation();quickPay('${c.id}')">+ Ödeme Al</span></div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ══ MÜŞTERİLER ══ */
+function renderMusteriler(){
+  // Müşterileri çekimlerden grupla
+  const map={};
+  cekimler.forEach(c=>{
+    const key=c.name.trim().toLowerCase();
+    if(!map[key]) map[key]={name:c.name,phone:'',items:[],isSabit:false};
+    map[key].items.push(c);
+    if(c.type==='Sabit') map[key].isSabit=true;
+    if(c.phone) map[key].phone=c.phone;
+  });
+  const customers=Object.values(map).map(m=>{
+    const pend=m.items.filter(c=>c.status==='pending');
+    const paid=m.items.filter(c=>c.status==='paid');
+    const pendRem=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
+    const totalEarned=paid.reduce((s,c)=>s+Number(c.amount||0),0)+m.items.reduce((s,c)=>s+Number(c.paidAmount||0),0);
+    const dates=m.items.map(c=>c.date).filter(Boolean).sort();
+    return{...m,pendCount:pend.length,pendRem,totalEarned,totalCount:m.items.length,lastDate:dates[dates.length-1]||''};
+  });
+  const sabit=customers.filter(c=>c.isSabit).sort((a,b)=>b.pendRem-a.pendRem);
+  const anlik=customers.filter(c=>!c.isSabit).sort((a,b)=>b.pendRem-a.pendRem);
+  const totalPend=customers.reduce((s,c)=>s+c.pendRem,0);
+  const totalEarned=customers.reduce((s,c)=>s+c.totalEarned,0);
+  document.getElementById('ms-summary').innerHTML=`
+    <div class="dc c-gold"><div class="dc-lbl">Toplam Bekleyen</div><div class="dc-val gold">${fmt(totalPend)}</div><div class="dc-sub">${customers.filter(c=>c.pendRem>0).length} müşteri · ${customers.reduce((s,c)=>s+c.pendCount,0)} çekim</div><div class="dc-ico">⏳</div></div>
+    <div class="dc c-green"><div class="dc-lbl">Toplam Kazanılan</div><div class="dc-val green">${fmt(totalEarned)}</div><div class="dc-sub">${customers.length} müşteri</div><div class="dc-ico">💰</div></div>`;
+  let html='';
+  if(!customers.length){html='<div class="empty-s"><div class="ei">👥</div><div class="et">Henüz müşteri yok</div></div>';}
+  else{
+    if(sabit.length) html+=`<div class="od-section-lbl">🔄 Sabit Müşteriler (${sabit.length})</div><div class="ms-list">${sabit.map(c=>musteriCardHtml(c)).join('')}</div>`;
+    if(anlik.length) html+=`<div class="od-section-lbl">⚡ Anlık Müşteriler (${anlik.length})</div><div class="ms-list">${anlik.map(c=>musteriCardHtml(c)).join('')}</div>`;
+  }
+  document.getElementById('musteriler-content').innerHTML=html;
+}
+function musteriCardHtml(m){
+  const lastD=m.lastDate?pDate(m.lastDate):null;
+  const lastStr=lastD?`${lastD.getDate()} ${MS[lastD.getMonth()]}`:'—';
+  return`<div class="ms-card">
+    <div class="ms-head">
+      <div><div class="ms-name">${m.name}</div>${m.phone?`<div class="ms-phone">📞 ${m.phone}</div>`:''}</div>
+      <div style="text-align:right">${m.pendRem>0?`<div class="ms-pend">${fmt(m.pendRem)}</div><div style="font-size:9px;color:var(--text3)">bekliyor</div>`:'<span class="badge paid">✓ Temiz</span>'}</div>
+    </div>
+    <div class="ms-stats">
+      <div class="ms-stat"><div class="ms-stat-val">${m.totalCount}</div><div class="ms-stat-lbl">Çekim</div></div>
+      <div class="ms-stat"><div class="ms-stat-val" style="color:var(--green)">${fmt(m.totalEarned)}</div><div class="ms-stat-lbl">Alındı</div></div>
+      <div class="ms-stat"><div class="ms-stat-val">${lastStr}</div><div class="ms-stat-lbl">Son Çekim</div></div>
     </div>
   </div>`;
 }
