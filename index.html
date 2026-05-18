@@ -327,6 +327,50 @@ textarea.fi{resize:none;height:72px;}
 .toast.info{color:var(--teal);border-color:rgba(45,224,204,.25);}
 
 
+/* ── BENTO GRID ── */
+.bento-sec-lbl{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;}
+.bento-sec-lbl span{font-size:10px;color:var(--teal);letter-spacing:0;text-transform:none;font-weight:600;}
+.bento-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 6px;}
+.bi{position:relative;padding:13px;border-radius:16px;overflow:hidden;transition:transform .25s cubic-bezier(.32,.72,0,1),box-shadow .25s;cursor:pointer;border:.5px solid var(--border);background:var(--card);will-change:transform;}
+.bi:active{transform:scale(.97);}
+.bi.span2{grid-column:1/-1;}
+.bi.st-paid{border-left:2.5px solid var(--green);}
+.bi.st-pending{border-left:2.5px solid var(--gold);}
+.bi.st-cancelled{border-left:2.5px solid var(--red);opacity:.6;}
+.bi.pinned{box-shadow:0 2px 16px rgba(45,224,204,.12);border-color:rgba(45,224,204,.25);}
+/* dot-grid overlay */
+.bi-dots{position:absolute;inset:0;pointer-events:none;transition:opacity .3s;
+  background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:6px 6px;opacity:0;}
+.bi.pinned .bi-dots{opacity:1;}
+/* gradient border glow */
+.bi-glow{position:absolute;inset:0;z-index:-1;border-radius:16px;padding:1px;
+  background:linear-gradient(135deg,transparent,rgba(255,255,255,.06),transparent);
+  opacity:0;transition:opacity .3s;}
+.bi.pinned .bi-glow{opacity:1;}
+/* content */
+.bi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.bi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.bi-icon.paid{background:var(--green2);}
+.bi-icon.pending{background:var(--gold2);}
+.bi-icon.cancelled{background:var(--red2);}
+.bi-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.04em;}
+.bi-badge.paid{background:var(--green2);color:var(--green);}
+.bi-badge.pending{background:var(--gold2);color:var(--gold);}
+.bi-badge.cancelled{background:var(--red2);color:var(--red);}
+.bi-badge.partial{background:var(--blue2);color:var(--blue);}
+.bi-name{font-size:13.5px;font-weight:700;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.bi-meta{font-size:10.5px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bi-amt{font-size:20px;font-weight:800;letter-spacing:-.5px;margin:6px 0 4px;}
+.bi-amt.paid{color:var(--green);}
+.bi-amt.pending{color:var(--gold);}
+.bi-amt.partial{color:var(--blue);}
+.bi-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.bi-progress-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width .4s;}
+.bi-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.bi-tag{font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.05);color:var(--text2);border:.5px solid var(--border);}
+.bi-cta{font-size:10px;color:var(--text2);text-align:right;margin-top:6px;opacity:0;transition:opacity .2s;}
+
 /* ── KURGU ── */
 .ku-doctor-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:0;}
 .ku-doctor-head{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
@@ -388,6 +432,8 @@ textarea.fi{resize:none;height:72px;}
     <div class="dash-grid" id="dash-grid"></div>
     <div class="sec-lbl">Yaklaşan Çekimler</div>
     <div class="upcoming" id="upcoming-list"></div>
+    <div class="bento-sec-lbl" id="bento-lbl" style="margin-top:6px;">Bu Ay Çekimleri <span id="bento-count"></span></div>
+    <div class="bento-grid" id="bento-grid"></div>
   </div>
 
   <!-- TAKVİM -->
@@ -941,10 +987,71 @@ function renderOzet(){
     <div class="dc c-gold"><div class="dc-lbl">Bekleyen</div><div class="dc-val gold">${fmt(pendingRemaining)}</div><div class="dc-sub">${globalPend.length} çekim · ${hasPartial?'kısmi var':'tümü bekliyor'}</div><div class="dc-ico">⏳</div></div>
     <div class="dc c-red"><div class="dc-lbl">Bu Ay Gider</div><div class="dc-val red">${fmt(sumGider)}</div><div class="dc-sub">${mGider.length} kalem · Net ${net>=0?'+':''}${fmt(net)}</div><div class="dc-ico">💸</div></div>
     <div class="dc" style="--ac:rgba(45,224,204,.07);"><div class="dc-lbl">Bu Ay Çekim</div><div class="dc-val teal">${mc.length}</div><div class="dc-sub">${fmt(sum(mc))} toplam</div><div class="dc-ico">📷</div></div>`;
+  renderBentoGrid();
   const today=todayStr();
   const up=cekimler.filter(c=>c.date>=today&&c.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const ul=document.getElementById('upcoming-list');
   ul.innerHTML=up.length?up.map(c=>{const d=pDate(c.date);return`<div class="up-item" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))"><div class="up-date"><div class="up-d">${d.getDate()}</div><div class="up-m">${MS[d.getMonth()]}</div></div><div class="up-info"><div class="up-name">${c.name}</div><div class="up-loc">${c.location||c.type||'—'}</div></div><span class="badge ${c.status}">${c.status==='paid'?'Ödendi':c.status==='pending'?'Bekliyor':'İptal'}</span></div>`;}).join(''):'<div class="empty-s"><div class="ei">📭</div><div class="et">Yaklaşan çekim yok</div></div>';
+}
+
+/* ══ BENTO GRID — Bu Ay Çekimleri ══ */
+function renderBentoGrid(){
+  const mc=cekimler.filter(c=>{const d=pDate(c.date);return d&&d.getMonth()===ozetM&&d.getFullYear()===ozetY;})
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  const cnt=document.getElementById('bento-count');
+  if(cnt) cnt.textContent=mc.length?mc.length+' çekim':'';
+
+  const el=document.getElementById('bento-grid');
+  if(!el)return;
+  if(!mc.length){
+    el.innerHTML='<div style="grid-column:1/-1" class="empty-s"><div class="ei">📷</div><div class="et">Bu ay çekim yok</div></div>';
+    return;
+  }
+
+  // İlk 2 çekimi span2 (geniş), kalanları normal
+  el.innerHTML=mc.map((c,i)=>{
+    const d=pDate(c.date);
+    const pi=partialInfo(c);
+    const isSpan2=i===0||(c.amount>=20000&&i<4);
+    const isPinned=isSpan2&&i===0;
+    const cardSt=pi&&pi.remaining>0?'partial':c.status;
+    const iconEmoji=c.type==='Sabit'?'🔄':c.type==='Kurgu'?'✂️':c.type==='Tek Seferlik'?'⚡':'📷';
+    const stLabel=cardSt==='paid'?'Ödendi':cardSt==='partial'?'Kısmen':cardSt==='cancelled'?'İptal':'Bekliyor';
+    const amtColor=cardSt==='paid'?'paid':cardSt==='partial'?'partial':'pending';
+    const displayAmt=pi&&pi.remaining>0?pi.remaining:Number(c.amount||0);
+
+    const tags=[c.type,c.location].filter(Boolean);
+    const dateStr=d?`${d.getDate()} ${MS[d.getMonth()]}${c.time?' · '+c.time:''}`:'—';
+
+    const progressHtml=pi&&pi.remaining>0?`
+      <div class="bi-progress"><div class="bi-progress-bar" style="width:${pi.pct}%"></div></div>
+      <div style="font-size:9px;color:var(--text2);margin-bottom:2px;">✓ ${fmt(pi.paid)} alındı · ${fmt(pi.remaining)} kalan</div>`:'';
+
+    const tagsHtml=tags.length?`<div class="bi-tags">${tags.map(t=>`<span class="bi-tag">${t}</span>`).join('')}</div>`:'';
+
+    const ctaHtml=c.status!=='paid'&&c.status!=='cancelled'
+      ?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span class="bi-tag" style="background:rgba(96,165,250,.1);color:var(--blue);border-color:rgba(96,165,250,.2);cursor:pointer;" onclick="event.stopPropagation();quickPay('${c.id}')">+ Ödeme Al</span>
+          <span class="bi-cta" style="opacity:.6">Detay →</span>
+        </div>`
+      :`<div style="text-align:right;margin-top:4px;"><span class="bi-cta" style="opacity:.45">Detay →</span></div>`;
+
+    return`<div class="bi st-${c.status}${isSpan2?' span2':''}${isPinned?' pinned':''}" onclick="openDetail(cekimler.find(x=>x.id==='${c.id}'))">
+      <div class="bi-dots"></div>
+      <div class="bi-glow"></div>
+      <div class="bi-top">
+        <div class="bi-icon ${c.status}">${iconEmoji}</div>
+        <span class="bi-badge ${cardSt}">${stLabel}</span>
+      </div>
+      <div class="bi-name">${c.name}</div>
+      <div class="bi-meta">📅 ${dateStr}${c.notes?' · '+c.notes.split('·')[0].trim():''}</div>
+      <div class="bi-amt ${amtColor}">${fmt(displayAmt)}</div>
+      ${progressHtml}
+      ${tagsHtml}
+      ${ctaHtml}
+    </div>`;
+  }).join('');
 }
 
 /* ══ TAKVİM ══ */
