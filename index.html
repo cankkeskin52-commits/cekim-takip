@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2026-05-19-v5';
+const APP_VER = '2026-05-19-v6';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -807,7 +807,8 @@ function shareWhatsApp(){
 /* ══ STORE KEYS ══ */
 const SK_C='cm_cekimler_v2', SK_P='cm_projeler_v2', SK_F='cm_finans_v2';
 const SK_KD='cm_kurgu_doctors_v1', SK_KE='cm_kurgu_entries_v1';
-let cekimler=[], projeler=[], finanslar=[], kurguDoctors=[], kurguEntries=[];
+const SK_MT='cm_musteri_tipleri';
+let cekimler=[], projeler=[], finanslar=[], kurguDoctors=[], kurguEntries=[], musteriTipleri={};
 let selStatus='pending', formFinType='income', selStatusKu='pending';
 let editingKuid=null, editingDid=null;
 let editingCid=null, editingFid=null;
@@ -865,6 +866,7 @@ function load(){
   try{const d=localStorage.getItem(SK_F); finanslar=d?JSON.parse(d):DEF_FINANS; if(!d)localStorage.setItem(SK_F,JSON.stringify(finanslar));}catch{finanslar=DEF_FINANS;localStorage.setItem(SK_F,JSON.stringify(finanslar));}
   try{const d=localStorage.getItem(SK_KD); kurguDoctors=d?JSON.parse(d):DEF_KURGU_DOCTORS; if(!d)localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}catch{kurguDoctors=DEF_KURGU_DOCTORS;localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));}
   try{const d=localStorage.getItem(SK_KE); kurguEntries=d?JSON.parse(d):DEF_KURGU_ENTRIES; if(!d)localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}catch{kurguEntries=DEF_KURGU_ENTRIES;localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));}
+  try{const d=localStorage.getItem(SK_MT); musteriTipleri=d?JSON.parse(d):{};}catch{musteriTipleri={};}
 }
 
 function _ts(){return Date.now();}
@@ -876,6 +878,7 @@ function saveP(){localStorage.setItem(SK_P,JSON.stringify(projeler));_saveTs();p
 function saveF(){localStorage.setItem(SK_F,JSON.stringify(finanslar));_saveTs();pushToFirebase();}
 function saveKD(){localStorage.setItem(SK_KD,JSON.stringify(kurguDoctors));_saveTs();pushToFirebase();}
 function saveKE(){localStorage.setItem(SK_KE,JSON.stringify(kurguEntries));_saveTs();pushToFirebase();}
+function saveMT(){localStorage.setItem(SK_MT,JSON.stringify(musteriTipleri));}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
 /* ══ UTILS ══ */
@@ -1070,13 +1073,12 @@ function odCardHtml(c){
 
 /* ══ MÜŞTERİLER ══ */
 function renderMusteriler(){
-  // Müşterileri çekimlerden grupla
   const map={};
   cekimler.forEach(c=>{
     const key=c.name.trim().toLowerCase();
-    if(!map[key]) map[key]={name:c.name,phone:'',items:[],isSabit:false};
+    if(!map[key]) map[key]={name:c.name,phone:'',items:[],isSabitCekim:false,key};
     map[key].items.push(c);
-    if(c.type==='Sabit') map[key].isSabit=true;
+    if(c.type==='Sabit') map[key].isSabitCekim=true;
     if(c.phone) map[key].phone=c.phone;
   });
   const customers=Object.values(map).map(m=>{
@@ -1085,10 +1087,12 @@ function renderMusteriler(){
     const pendRem=pend.reduce((s,c)=>s+(Number(c.amount||0)-Number(c.paidAmount||0)),0);
     const totalEarned=paid.reduce((s,c)=>s+Number(c.amount||0),0)+m.items.reduce((s,c)=>s+Number(c.paidAmount||0),0);
     const dates=m.items.map(c=>c.date).filter(Boolean).sort();
-    return{...m,pendCount:pend.length,pendRem,totalEarned,totalCount:m.items.length,lastDate:dates[dates.length-1]||''};
+    // Manuel tip varsa kullan, yoksa çekim tipinden tahmin et
+    const tip=musteriTipleri[m.key]||(m.isSabitCekim?'sabit':'anlik');
+    return{...m,tip,pendCount:pend.length,pendRem,totalEarned,totalCount:m.items.length,lastDate:dates[dates.length-1]||''};
   });
-  const sabit=customers.filter(c=>c.isSabit).sort((a,b)=>b.pendRem-a.pendRem);
-  const anlik=customers.filter(c=>!c.isSabit).sort((a,b)=>b.pendRem-a.pendRem);
+  const sabit=customers.filter(c=>c.tip==='sabit').sort((a,b)=>b.pendRem-a.pendRem);
+  const anlik=customers.filter(c=>c.tip!=='sabit').sort((a,b)=>b.pendRem-a.pendRem);
   const totalPend=customers.reduce((s,c)=>s+c.pendRem,0);
   const totalEarned=customers.reduce((s,c)=>s+c.totalEarned,0);
   document.getElementById('ms-summary').innerHTML=`
@@ -1105,15 +1109,26 @@ function renderMusteriler(){
 function musteriCardHtml(m){
   const lastD=m.lastDate?pDate(m.lastDate):null;
   const lastStr=lastD?`${lastD.getDate()} ${MS[lastD.getMonth()]}`:'—';
+  const isSabit=m.tip==='sabit';
+  const tipBtnStyle=isSabit
+    ?'background:rgba(167,139,250,.15);color:var(--purple);border:.5px solid rgba(167,139,250,.3);'
+    :'background:rgba(251,191,36,.1);color:#fbbf24;border:.5px solid rgba(251,191,36,.25);';
+  const tipBtnTxt=isSabit?'🔄 Sabit':'⚡ Anlık';
+  const nameEsc=m.name.replace(/'/g,"\\'");
   return`<div class="ms-card">
     <div class="ms-head">
-      <div><div class="ms-name">${m.name}</div>${m.phone?`<div class="ms-phone">📞 ${m.phone}</div>`:''}</div>
-      <div style="text-align:right">${m.pendRem>0?`<div class="ms-pend">${fmt(m.pendRem)}</div><div style="font-size:9px;color:var(--text3)">bekliyor</div>`:'<span class="badge paid">✓ Temiz</span>'}</div>
+      <div style="flex:1;min-width:0;"><div class="ms-name">${m.name}</div>${m.phone?`<div class="ms-phone">📞 ${m.phone}</div>`:''}</div>
+      <div style="text-align:right;flex-shrink:0;">
+        ${m.pendRem>0?`<div class="ms-pend">${fmt(m.pendRem)}</div><div style="font-size:9px;color:var(--text3)">bekliyor</div>`:'<span class="badge paid">✓ Temiz</span>'}
+      </div>
     </div>
     <div class="ms-stats">
       <div class="ms-stat"><div class="ms-stat-val">${m.totalCount}</div><div class="ms-stat-lbl">Çekim</div></div>
       <div class="ms-stat"><div class="ms-stat-val" style="color:var(--green)">${fmt(m.totalEarned)}</div><div class="ms-stat-lbl">Alındı</div></div>
       <div class="ms-stat"><div class="ms-stat-val">${lastStr}</div><div class="ms-stat-lbl">Son Çekim</div></div>
+    </div>
+    <div style="padding:10px 14px;border-top:.5px solid var(--border);">
+      <button onclick="toggleMusteriTip('${nameEsc}',event)" style="width:100%;padding:8px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;${tipBtnStyle}">${tipBtnTxt} — değiştirmek için dokun</button>
     </div>
   </div>`;
 }
@@ -1862,8 +1877,40 @@ function scheduleNotifCheck(){
   setTimeout(()=>{checkTomorrowShoots();scheduleNotifCheck();},ms);
 }
 
+/* ══ GELİR SENKRON (tüm eski ödemeleri finansa ekle) ══ */
+function syncAllCekimToGelir(){
+  let changed=false;
+  cekimler.forEach(c=>{
+    const alınan=c.status==='paid'?Number(c.amount||0):Number(c.paidAmount||0);
+    const existing=finanslar.find(f=>f.cekimId===c.id);
+    if(alınan>0){
+      if(!existing){
+        finanslar.push({id:uid(),cekimId:c.id,type:'income',
+          desc:c.name+(c.location?' · '+c.location:''),
+          amount:alınan,date:c.date,cat:'Çekim Geliri',notes:'📷 Otomatik'});
+        changed=true;
+      } else if(existing.amount!==alınan){
+        existing.amount=alınan; existing.date=c.date; changed=true;
+      }
+    } else if(alınan===0&&existing){
+      finanslar=finanslar.filter(f=>f.cekimId!==c.id); changed=true;
+    }
+  });
+  if(changed) saveF();
+}
+function toggleMusteriTip(name,e){
+  e&&e.stopPropagation();
+  const key=name.trim().toLowerCase();
+  const isSabitCekim=cekimler.some(c=>c.name.trim().toLowerCase()===key&&c.type==='Sabit');
+  const current=musteriTipleri[key]||(isSabitCekim?'sabit':'anlik');
+  musteriTipleri[key]=current==='sabit'?'anlik':'sabit';
+  saveMT();
+  renderMusteriler();
+}
+
 /* ══ INIT ══ */
 load();
+syncAllCekimToGelir();
 renderOzet();
 setTimeout(autoReconnectSync,1500);
 setTimeout(()=>{checkTomorrowShoots();scheduleNotifCheck();},2000);
