@@ -12,7 +12,7 @@
 <title>CLENSMEDYA</title>
 <script>
 // ── ZORLA GÜNCELLEME: versiyon değişince tüm cache temizlenir ──
-const APP_VER = '2026-05-19-v7';
+const APP_VER = '2026-05-19-v8';
 (async()=>{
   const stored = localStorage.getItem('app_ver');
   if(stored !== APP_VER){
@@ -465,22 +465,22 @@ textarea.fi{resize:none;height:72px;}
   <!-- BOTTOM NAV -->
   <div class="bnav">
     <div class="bnav-item active" id="nav-ozet" onclick="switchPage('ozet',this)">
-      <div class="bnav-icon">📊</div><div class="bnav-label">Özet</div>
+      <div class="bnav-icon">🏠</div><div class="bnav-label">Ana</div>
     </div>
     <div class="bnav-item" id="nav-takvim" onclick="switchPage('takvim',this)">
-      <div class="bnav-icon">📅</div><div class="bnav-label">Takvim</div>
+      <div class="bnav-icon">📷</div><div class="bnav-label">Çekimler</div>
     </div>
     <div class="bnav-item" id="nav-odemeler" onclick="switchPage('odemeler',this)">
-      <div class="bnav-icon">💳</div><div class="bnav-label">Ödemeler</div>
+      <div class="bnav-icon">💰</div><div class="bnav-label">Alacak</div>
     </div>
     <div class="bnav-item" id="nav-musteriler" onclick="switchPage('musteriler',this)">
-      <div class="bnav-icon">👥</div><div class="bnav-label">Müşteriler</div>
+      <div class="bnav-icon">👥</div><div class="bnav-label">Müşteri</div>
     </div>
     <div class="bnav-item" id="nav-kurgu" onclick="switchPage('kurgu',this)">
       <div class="bnav-icon">✂️</div><div class="bnav-label">Kurgu</div>
     </div>
     <div class="bnav-item" id="nav-finans" onclick="switchPage('finans',this)">
-      <div class="bnav-icon">💰</div><div class="bnav-label">Finans</div>
+      <div class="bnav-icon">📊</div><div class="bnav-label">Finans</div>
     </div>
   </div>
 </div>
