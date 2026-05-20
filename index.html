@@ -306,20 +306,29 @@ function saveConfig() {
 }
 function v(id) { return document.getElementById(id)?.value.trim() || ''; }
 
+const DEFAULT_CFG = {
+  apiKey: "AIzaSyAeYOc5tufXdy2DVt1Fdxmq3j1PP4-vpeE",
+  authDomain: "clensmedya-a08a5.firebaseapp.com",
+  projectId: "clensmedya-a08a5",
+  storageBucket: "clensmedya-a08a5.firebasestorage.app",
+  messagingSenderId: "660181304150",
+  appId: "1:660181304150:web:cf761acd0264ed5e848cf7"
+};
+
 function initFirebase() {
-  const raw = localStorage.getItem('fb_cfg');
-  if (!raw) {
-    hide('loading-screen');
-    document.getElementById('setup-screen').style.removeProperty('display');
-    return false;
+  let cfg;
+  try {
+    const raw = localStorage.getItem('fb_cfg');
+    cfg = raw ? JSON.parse(raw) : DEFAULT_CFG;
+  } catch(e) {
+    cfg = DEFAULT_CFG;
   }
   try {
-    firebase.initializeApp(JSON.parse(raw));
+    firebase.initializeApp(cfg);
     db = firebase.firestore();
     return true;
   } catch(e) {
-    localStorage.removeItem('fb_cfg');
-    location.reload();
+    console.error('Firebase init:', e);
     return false;
   }
 }
