@@ -22,6 +22,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Paketler koleksiyonu
+    match /paketler/{docId} {
+      allow read, write: if true;
+    }
+
     // Diğer her şeyi engelle
     match /{document=**} {
       allow read, write: if false;
