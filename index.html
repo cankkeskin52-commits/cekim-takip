@@ -130,20 +130,6 @@
         </div>
       </div>
 
-      <!-- Ortak Paylaşımı -->
-      <div id="d-ortak-block" class="hidden grid grid-cols-2 gap-3">
-        <div class="card p-4 border-violet-100">
-          <p class="text-xs text-violet-500 font-medium">Sizin Payınız</p>
-          <p class="text-xl font-bold text-violet-700 mt-1" id="d-pay-ben">₺0</p>
-          <p class="text-xs text-slate-400 mt-0.5">Çekimlerden</p>
-        </div>
-        <div class="card p-4 border-pink-100">
-          <p class="text-xs text-pink-500 font-medium">Ortak Payı</p>
-          <p class="text-xl font-bold text-pink-600 mt-1" id="d-pay-ortak">₺0</p>
-          <p class="text-xs text-slate-400 mt-0.5">Çekimlerden</p>
-        </div>
-      </div>
-
       <div class="card overflow-hidden">
         <div class="px-4 py-3 flex items-center justify-between border-b border-slate-50">
           <p class="text-sm font-semibold text-slate-800">Bekleyen Ödemeler</p>
@@ -467,28 +453,6 @@ function renderDash() {
   document.getElementById('d-gider-c').textContent = mf.filter(f=>f.tip==='gider').length + ' işlem';
   document.getElementById('d-net').textContent     = tl(net);
   document.getElementById('d-net-s').textContent   = net >= 0 ? '✅ Kârlı ay' : '⚠️ Zararda';
-
-  // Ortak payı hesabı (bu ayki çekimlerden)
-  const mCek = cekimler.filter(c => { const d=toDate(c.tarih); return d&&d>=ms&&d<=me; });
-  const hasOrtak = mCek.some(c => c.kimler === 'ortak' || c.kimler === 'ikimiz');
-  const payBen   = mCek.reduce((a,c) => {
-    if (!c.kimler || c.kimler==='ben')   return a + (c.ucret||0);
-    if (c.kimler==='ikimiz')              return a + (c.ucret||0)/2;
-    return a;
-  }, 0);
-  const payOrtak = mCek.reduce((a,c) => {
-    if (c.kimler==='ortak')  return a + (c.ucret||0);
-    if (c.kimler==='ikimiz') return a + (c.ucret||0)/2;
-    return a;
-  }, 0);
-  const ob = document.getElementById('d-ortak-block');
-  ob.classList.toggle('hidden', !hasOrtak);
-  if (hasOrtak) {
-    ob.classList.remove('hidden');
-    ob.classList.add('grid');
-    document.getElementById('d-pay-ben').textContent   = tl(payBen);
-    document.getElementById('d-pay-ortak').textContent = tl(payOrtak);
-  }
 
   // Bekleyen
   const bek = cekimler.filter(c => c.odeme_durumu==='bekliyor' || c.odeme_durumu==='kismi');
