@@ -916,24 +916,48 @@ function editKurgu(id) { editId=id; openKurguForm(kurgular.find(k=>k.id===id)); 
 function openKurguForm(data) {
   const isEdit=!!data;
   document.getElementById('modal-title').textContent = isEdit?'Kurguyu Düzenle':'Yeni Kurgu';
+  const KURG_MUSTERI = ['GMN Dijital', 'Doktorlardan — Gonca Soyuduran'];
   document.getElementById('modal-body').innerHTML = `
     <form onsubmit="saveKurgu(event)" class="space-y-4 pb-4">
-      <div><label class="lbl">Müşteri / Proje *</label><input name="musteri" class="inp" required placeholder="Ahmet Yılmaz — Düğün" value="${esc(data?.musteri||'')}"></div>
+      <div>
+        <label class="lbl">Hızlı Seç</label>
+        <div id="kur-chips" class="flex gap-2 flex-wrap">
+          ${KURG_MUSTERI.map(n=>`<button type="button" class="chip ${data?.musteri===n?'chip-on':'chip-off'}" onclick="pickKurguMusteri(this,'${esc(n)}')">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div><label class="lbl">Müşteri / Proje *</label><input id="kurgu-musteri" name="musteri" class="inp" required placeholder="Ahmet Yılmaz — Düğün" value="${esc(data?.musteri||'')}"></div>
       <div><label class="lbl">Açıklama</label><input name="aciklama" class="inp" placeholder="Kısa açıklama" value="${esc(data?.aciklama||'')}"></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="lbl">Ücret (₺)</label><input name="ucret" type="number" min="0" class="inp" placeholder="0" value="${data?.ucret||''}"></div>
-        <div><label class="lbl">Durum</label>
-          <select name="durum" class="inp">
-            <option value="bekliyor"   ${(data?.durum||'bekliyor')==='bekliyor'?'selected':''}>Bekliyor</option>
-            <option value="devam"      ${data?.durum==='devam'?'selected':''}>Devam Ediyor</option>
-            <option value="tamamlandi" ${data?.durum==='tamamlandi'?'selected':''}>Tamamlandı</option>
-          </select></div>
+      <div>
+        <label class="lbl">Ücret (₺)</label>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="stepKurguUcret(-750)"
+            class="w-12 h-12 rounded-xl border-2 border-slate-200 text-slate-500 text-2xl font-bold flex items-center justify-center shrink-0 active:bg-slate-50">−</button>
+          <input name="ucret" id="kurgu-ucret" type="number" min="0" class="inp flex-1 text-center font-bold text-lg" placeholder="750" value="${data?.ucret!=null?data.ucret:750}">
+          <button type="button" onclick="stepKurguUcret(750)"
+            class="w-12 h-12 rounded-xl border-2 border-brand-200 text-brand-600 text-2xl font-bold flex items-center justify-center shrink-0 active:bg-brand-50">+</button>
+        </div>
+      </div>
+      <div><label class="lbl">Durum</label>
+        <select name="durum" class="inp">
+          <option value="bekliyor"   ${(data?.durum||'bekliyor')==='bekliyor'?'selected':''}>Bekliyor</option>
+          <option value="devam"      ${data?.durum==='devam'?'selected':''}>Devam Ediyor</option>
+          <option value="tamamlandi" ${data?.durum==='tamamlandi'?'selected':''}>Tamamlandı</option>
+        </select>
       </div>
       <div><label class="lbl">Tarih</label><input name="tarih" type="date" class="inp" value="${data?isoVal(data.tarih):today()}"></div>
       ${isEdit?`<button type="button" class="btn-d" onclick="askDel('kurgular','${data.id}','bu kurguyu');closeModal()">Kurguyu Sil</button>`:''}
       <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
     </form>`;
   openModal();
+}
+function pickKurguMusteri(btn, val) {
+  document.querySelectorAll('#kur-chips .chip').forEach(b => { b.classList.replace('chip-on','chip-off'); });
+  btn.classList.replace('chip-off','chip-on');
+  document.getElementById('kurgu-musteri').value = val;
+}
+function stepKurguUcret(delta) {
+  const inp = document.getElementById('kurgu-ucret');
+  inp.value = Math.max(0, (parseFloat(inp.value)||0) + delta);
 }
 async function saveKurgu(e) {
   e.preventDefault(); const f=e.target;
