@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Çekimler koleksiyonu
+    match /cekimler/{docId} {
+      allow read, write: if true;
+    }
+
+    // Gelir/Gider koleksiyonu
+    match /gelir_gider/{docId} {
+      allow read, write: if true;
+    }
+
+    // Müşteriler koleksiyonu
+    match /musteriler/{docId} {
+      allow read, write: if true;
+    }
+
+    // Kurgular koleksiyonu
+    match /kurgular/{docId} {
+      allow read, write: if true;
+    }
+
+    // Diğer her şeyi engelle
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
