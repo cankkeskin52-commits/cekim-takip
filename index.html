@@ -843,19 +843,22 @@ function openMusteriActions(id) {
   const isSabit = m.tip === 'sabit';
   const ods = m.odeme_durumu || 'bekliyor';
   const ODCOL = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
+  const ucretLabel = m.ucret ? ` — ${tl(m.ucret)}` : '';
   document.getElementById('modal-title').textContent = m.isim;
   document.getElementById('modal-body').innerHTML = `<div class="space-y-3 pb-4">
-    ${isSabit && m.ucret ? `<div class="rounded-xl bg-slate-50 p-3 flex items-center justify-between mb-1">
-      <p class="text-sm text-slate-500">Aylık Ücret</p>
-      <div class="text-right"><p class="font-bold text-slate-800">${tl(m.ucret)}</p>
-        <span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span></div>
+    ${m.ucret ? `<div class="rounded-xl bg-slate-50 p-3 flex items-center justify-between">
+      <p class="text-sm text-slate-500">${isSabit ? 'Sabit Ücret' : 'Çekim Ücreti'}</p>
+      <div class="text-right">
+        <p class="font-bold text-slate-800">${tl(m.ucret)}</p>
+        ${isSabit ? `<span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>` : ''}
+      </div>
     </div>` : ''}
     ${isSabit ? `
-      <button class="btn-p" onclick="setMusteriOdeme('${id}','odendi');closeModal()">✅ Ödeme Alındı</button>
+      <button class="btn-p" onclick="setMusteriOdeme('${id}','odendi');closeModal()">✅ Ödeme Alındı${ucretLabel}</button>
       <button class="w-full py-3 rounded-xl border-2 border-blue-200 text-blue-600 font-semibold text-sm bg-white active:bg-blue-50" onclick="setMusteriOdeme('${id}','kismi');closeModal()">💰 Kısmi Ödeme Alındı</button>
-      ${ods!=='bekliyor'?`<button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-medium text-sm bg-white active:bg-slate-50" onclick="setMusteriOdeme('${id}','bekliyor');closeModal()">🔄 Bekliyor'a Al</button>`:''}
+      ${ods!=='bekliyor'?`<button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-medium text-sm bg-white active:bg-slate-50" onclick="setMusteriOdeme('${id}','bekliyor');closeModal()">🔄 Yeniden Bekliyor'a Al</button>`:''}
     ` : `
-      <button class="btn-p" onclick="closeModal();editId=null;openCekimForm({musteri:'${esc(m.isim)}',telefon:'${esc(m.telefon||'')}'})">📷 Çekim Ekle</button>
+      <button class="btn-p" onclick="closeModal();editId=null;openCekimForm({musteri:'${esc(m.isim)}',telefon:'${esc(m.telefon||'')}',ucret:${m.ucret||''}})">📷 Çekim Ekle${ucretLabel}</button>
     `}
     <button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-medium text-sm bg-white active:bg-slate-50" onclick="closeModal();editMusteri('${id}')">✏️ Düzenle</button>
     <button class="w-full py-3 rounded-xl border-2 border-red-100 text-red-400 font-medium text-sm bg-white active:bg-red-50" onclick="askDel('musteriler','${id}','${esc(m.isim)} müşterisini');closeModal()">🗑 Sil</button>
