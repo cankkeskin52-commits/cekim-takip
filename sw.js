@@ -1,31 +1,31 @@
-const CACHE = 'cm-v24';
+const CACHE = 'clens-v1';
+const ASSETS = ['/', '/cekim-takip/', '/cekim-takip/index.html', '/cekim-takip/manifest.json', '/cekim-takip/icon.svg'];
 
 self.addEventListener('install', e => {
-  // index.html'i asla pre-cache'leme — her zaman network'ten al
   self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})));
 });
 
 self.addEventListener('activate', e => {
-  // Tüm eski cache'leri sil
   e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
-      .then(() => clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => clients.claim())
   );
 });
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  if (!e.request.url.includes('/cekim-takip')) return;
+  // Firebase ve CDN isteklerini cache'leme
+  const url = e.request.url;
+  if (url.includes('firestore') || url.includes('googleapis') || url.includes('gstatic') || url.includes('tailwindcss') || url.includes('fonts.google')) return;
 
   e.respondWith(
-    // cache: 'no-cache' → GitHub Pages CDN'ini bypass et, her seferinde taze al
     fetch(e.request, { cache: 'no-cache' })
       .then(r => {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
+        if (r.ok) caches.open(CACHE).then(c => c.put(e.request, r.clone()));
         return r;
       })
-      .catch(() => caches.match(e.request)) // sadece offline'da cache'e bak
+      .catch(() => caches.match(e.request))
   );
 });
