@@ -475,7 +475,7 @@ function renderDash() {
 
   // Bekleyen — çekimler + sabit müşteriler
   const bekCek = cekimler.filter(c => c.odeme_durumu==='bekliyor' || c.odeme_durumu==='kismi');
-  const bekMus = musteriler.filter(m => m.tip==='sabit' && m.ucret>0 && (m.odeme_durumu==='bekliyor'||m.odeme_durumu==='kismi'));
+  const bekMus = musteriler.filter(m => m.tip==='sabit' && m.ucret>0 && (dashOds(m)==='bekliyor'||dashOds(m)==='kismi'));
   const bekTot = bekCek.length + bekMus.length;
   document.getElementById('d-bek-n').textContent = bekTot;
   const bl = document.getElementById('d-bek-list');
@@ -496,7 +496,7 @@ function renderDash() {
              <p class="text-xs text-slate-400">Sabit Müşteri</p></div>
         <div class="text-right">
           <p class="text-sm font-bold text-slate-800">${tl(m.ucret)}</p>
-          <span class="text-xs px-2 py-0.5 rounded-full badge-${m.odeme_durumu}">${ODLBL[m.odeme_durumu]}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full badge-${dashOds(m)}">${ODLBL[dashOds(m)]}</span>
         </div>
       </div>`);
     bl.innerHTML = [...cekRows, ...musRows].join('');
@@ -538,7 +538,16 @@ function shiftMus(d) {
   if (musM > 11) { musM=0; musY++; }
   if (musM <  0) { musM=11; musY--; }
   document.getElementById('mus-month').textContent = `${MONTHS[musM]} ${musY}`;
+  renderMusteriler();
 }
+// Ay anahtarı: '2026-05'
+function mKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+// Görüntülenen ay için müşteri ödeme durumu
+function musOds(m)    { return m.odeme_gecmisi?.[mKey(musY,musM)]?.durum  || 'bekliyor'; }
+function musOdenen(m) { return m.odeme_gecmisi?.[mKey(musY,musM)]?.odenen || 0; }
+// Anasayfa için cari ay durumu
+function dashOds(m)   { const n=new Date(); return m.odeme_gecmisi?.[mKey(n.getFullYear(),n.getMonth())]?.durum || 'bekliyor'; }
+function dashOdenen(m){ const n=new Date(); return m.odeme_gecmisi?.[mKey(n.getFullYear(),n.getMonth())]?.odenen|| 0; }
 
 function setCekimFilter(f, btn) {
   cekimFilter = f;
@@ -849,7 +858,7 @@ function renderMusteriler() {
   if (!musteriler.length) { el.innerHTML = `<div class="empty"><svg class="w-12 h-12 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><p class="text-sm mt-2">Henüz müşteri yok</p></div>`; return; }
   el.innerHTML = musteriler.map(m => {
     const isSabit = m.tip === 'sabit';
-    const ods     = m.odeme_durumu || 'bekliyor';
+    const ods     = musOds(m);
     const ODCOL   = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
     return `<div class="card card-tap p-4" onclick="openMusteriActions('${m.id}')">
       <div class="flex items-center gap-3">
@@ -874,11 +883,14 @@ function openMusteriActions(id) {
   const m = musteriler.find(x => x.id===id);
   if (!m) return;
   const isSabit = m.tip === 'sabit';
-  const ods = m.odeme_durumu || 'bekliyor';
-  const ODCOL = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
+  const ods     = musOds(m);
+  const odenen  = musOdenen(m);
+  const ODCOL   = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
   const ucretLabel = m.ucret ? ` — ${tl(m.ucret)}` : '';
+  const ayLabel = `${MONTHS[musM]} ${musY}`;
   document.getElementById('modal-title').textContent = m.isim;
   document.getElementById('modal-body').innerHTML = `<div class="space-y-3 pb-4">
+    <p class="text-xs text-center text-slate-400 font-medium">${ayLabel}</p>
     ${m.ucret ? `<div class="rounded-xl bg-slate-50 p-3 space-y-2">
       <div class="flex items-center justify-between">
         <p class="text-sm text-slate-500">${isSabit ? 'Sabit Ücret' : 'Çekim Ücreti'}</p>
@@ -887,9 +899,9 @@ function openMusteriActions(id) {
           ${isSabit ? `<span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>` : ''}
         </div>
       </div>
-      ${isSabit && ods==='kismi' && m.odenen ? `<div class="border-t border-slate-200 pt-2 space-y-1">
-        <div class="flex justify-between text-xs"><span class="text-emerald-600 font-medium">Alınan</span><span class="font-bold text-emerald-700">${tl(m.odenen)}</span></div>
-        <div class="flex justify-between text-xs"><span class="text-amber-600 font-medium">Kalan</span><span class="font-bold text-amber-700">${tl(m.ucret-m.odenen)}</span></div>
+      ${isSabit && ods==='kismi' && odenen ? `<div class="border-t border-slate-200 pt-2 space-y-1">
+        <div class="flex justify-between text-xs"><span class="text-emerald-600 font-medium">Alınan</span><span class="font-bold text-emerald-700">${tl(odenen)}</span></div>
+        <div class="flex justify-between text-xs"><span class="text-amber-600 font-medium">Kalan</span><span class="font-bold text-amber-700">${tl(m.ucret-odenen)}</span></div>
       </div>` : ''}
     </div>` : ''}
     ${isSabit ? `
@@ -906,17 +918,20 @@ function openMusteriActions(id) {
 }
 
 async function setMusteriOdeme(id, durum) {
-  try { await db.collection('musteriler').doc(id).update({ odeme_durumu: durum }); }
+  const key = mKey(musY, musM);
+  try { await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum }); }
   catch(e) { alert('Hata: '+e.message); }
 }
 
 function openKismiOdemeForm(id) {
   const m = musteriler.find(x => x.id===id);
   if (!m) return;
-  const ucret = m.ucret || 0;
+  const ucret  = m.ucret || 0;
+  const odenen = musOdenen(m);
   document.getElementById('modal-title').textContent = m.isim;
   document.getElementById('modal-body').innerHTML = `
     <div class="space-y-4 pb-4">
+      <p class="text-xs text-center text-slate-400 font-medium">${MONTHS[musM]} ${musY}</p>
       <div class="rounded-xl bg-slate-50 p-3 flex items-center justify-between">
         <p class="text-sm text-slate-500">Toplam Ücret</p>
         <p class="font-bold text-slate-800">${tl(ucret)}</p>
@@ -924,12 +939,12 @@ function openKismiOdemeForm(id) {
       <div>
         <label class="lbl">Alınan Miktar (₺)</label>
         <input id="kismi-inp" type="number" min="0" max="${ucret}" class="inp text-lg font-bold"
-          placeholder="0" value="${m.odenen||''}"
+          placeholder="0" value="${odenen||''}"
           oninput="updateKismiKalan(${ucret})">
       </div>
-      <div id="kismi-kalan-row" class="rounded-xl p-3 flex items-center justify-between ${m.odenen?'bg-amber-50':'bg-slate-50'}">
-        <p class="text-sm ${m.odenen?'text-amber-600':'text-slate-400'}">Kalan</p>
-        <p class="font-bold ${m.odenen?'text-amber-700':'text-slate-400'}" id="kismi-kalan-val">${tl(ucret-(m.odenen||0))}</p>
+      <div id="kismi-kalan-row" class="rounded-xl p-3 flex items-center justify-between ${odenen?'bg-amber-50':'bg-slate-50'}">
+        <p class="text-sm ${odenen?'text-amber-600':'text-slate-400'}">Kalan</p>
+        <p class="font-bold ${odenen?'text-amber-700':'text-slate-400'}" id="kismi-kalan-val">${tl(ucret-odenen)}</p>
       </div>
       <button class="btn-p" onclick="saveKismiOdeme('${id}',${ucret})">Kaydet</button>
       <button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-medium text-sm bg-white" onclick="openMusteriActions('${id}')">← Geri</button>
@@ -947,10 +962,14 @@ function updateKismiKalan(ucret) {
 }
 
 async function saveKismiOdeme(id, ucret) {
-  const val = parseFloat(document.getElementById('kismi-inp').value) || 0;
+  const val   = parseFloat(document.getElementById('kismi-inp').value) || 0;
   const durum = val >= ucret ? 'odendi' : 'kismi';
+  const key   = mKey(musY, musM);
   try {
-    await db.collection('musteriler').doc(id).update({ odeme_durumu: durum, odenen: val });
+    await db.collection('musteriler').doc(id).update({
+      [`odeme_gecmisi.${key}.durum`]:  durum,
+      [`odeme_gecmisi.${key}.odenen`]: val
+    });
     closeModal();
   } catch(e) { alert('Hata: '+e.message); }
 }
