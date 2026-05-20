@@ -148,6 +148,15 @@
 
     <!-- ÇEKİMLER -->
     <section id="sec-cekimler" class="section p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="shiftCekim(-1)" class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center active:bg-slate-50">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-800 text-sm" id="cek-month">—</p>
+        <button onclick="shiftCekim(1)"  class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center active:bg-slate-50">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
       <div class="flex gap-2 overflow-x-auto pb-2 mb-3" id="ck-chips">
         <button class="chip chip-on"  onclick="setCekimFilter('hepsi',this)">Hepsi</button>
         <button class="chip chip-off" onclick="setCekimFilter('bekliyor',this)">Bekliyor</button>
@@ -221,6 +230,15 @@
 
     <!-- MÜŞTERİLER -->
     <section id="sec-musteriler" class="section p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="shiftMus(-1)" class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center active:bg-slate-50">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-800 text-sm" id="mus-month">—</p>
+        <button onclick="shiftMus(1)"  class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center active:bg-slate-50">
+          <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
       <div class="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4" id="mus-segs">
         <button class="seg seg-on"  onclick="setMusteriTab('musteriler',this)">Müşteriler</button>
         <button class="seg seg-off" onclick="setMusteriTab('kurgular',this)">Kurgular</button>
@@ -294,7 +312,7 @@ let curTab = 'dashboard', curMusTab = 'musteriler';
 let editId = null, delCol = null, delId = null;
 let cekimler = [], finans = [], musteriler = [], kurgular = [], paketler = [];
 let cekimFilter = 'hepsi', finansFilter = 'hepsi';
-let finY, finM, takY, takM, takDay = null;
+let cekY, cekM, finY, finM, takY, takM, musY, musM, takDay = null;
 
 // ─────────────────────────────────────
 //  FIREBASE
@@ -509,6 +527,19 @@ function renderDash() {
 // ─────────────────────────────────────
 //  ÇEKİMLER
 // ─────────────────────────────────────
+function shiftCekim(d) {
+  cekM += d;
+  if (cekM > 11) { cekM=0; cekY++; }
+  if (cekM <  0) { cekM=11; cekY--; }
+  renderCekimler();
+}
+function shiftMus(d) {
+  musM += d;
+  if (musM > 11) { musM=0; musY++; }
+  if (musM <  0) { musM=11; musY--; }
+  document.getElementById('mus-month').textContent = `${MONTHS[musM]} ${musY}`;
+}
+
 function setCekimFilter(f, btn) {
   cekimFilter = f;
   document.querySelectorAll('#ck-chips .chip').forEach(b => { b.classList.remove('chip-on'); b.classList.add('chip-off'); });
@@ -517,7 +548,9 @@ function setCekimFilter(f, btn) {
 }
 
 function renderCekimler() {
-  const data = cekimFilter==='hepsi' ? cekimler : cekimler.filter(c => c.odeme_durumu===cekimFilter);
+  document.getElementById('cek-month').textContent = `${MONTHS[cekM]} ${cekY}`;
+  const monthly = cekimler.filter(c => { const d=toDate(c.tarih); return d&&d.getFullYear()===cekY&&d.getMonth()===cekM; });
+  const data = cekimFilter==='hepsi' ? monthly : monthly.filter(c => c.odeme_durumu===cekimFilter);
   const el = document.getElementById('cekim-list');
   if (!data.length) {
     el.innerHTML = `<div class="empty">
@@ -1101,8 +1134,11 @@ window.addEventListener('load', async () => {
   const ok = initFirebase();
   if (!ok) return;
   const now = new Date();
+  cekY=now.getFullYear(); cekM=now.getMonth();
   finY=now.getFullYear(); finM=now.getMonth();
   takY=now.getFullYear(); takM=now.getMonth();
+  musY=now.getFullYear(); musM=now.getMonth();
+  document.getElementById('mus-month').textContent = `${MONTHS[musM]} ${musY}`;
   await new Promise(r => setTimeout(r,500));
   hide('loading-screen'); show('app');
   listen(); goTo('dashboard');
