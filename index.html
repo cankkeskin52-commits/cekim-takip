@@ -846,16 +846,22 @@ function openMusteriActions(id) {
   const ucretLabel = m.ucret ? ` — ${tl(m.ucret)}` : '';
   document.getElementById('modal-title').textContent = m.isim;
   document.getElementById('modal-body').innerHTML = `<div class="space-y-3 pb-4">
-    ${m.ucret ? `<div class="rounded-xl bg-slate-50 p-3 flex items-center justify-between">
-      <p class="text-sm text-slate-500">${isSabit ? 'Sabit Ücret' : 'Çekim Ücreti'}</p>
-      <div class="text-right">
-        <p class="font-bold text-slate-800">${tl(m.ucret)}</p>
-        ${isSabit ? `<span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>` : ''}
+    ${m.ucret ? `<div class="rounded-xl bg-slate-50 p-3 space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-slate-500">${isSabit ? 'Sabit Ücret' : 'Çekim Ücreti'}</p>
+        <div class="text-right">
+          <p class="font-bold text-slate-800">${tl(m.ucret)}</p>
+          ${isSabit ? `<span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>` : ''}
+        </div>
       </div>
+      ${isSabit && ods==='kismi' && m.odenen ? `<div class="border-t border-slate-200 pt-2 space-y-1">
+        <div class="flex justify-between text-xs"><span class="text-emerald-600 font-medium">Alınan</span><span class="font-bold text-emerald-700">${tl(m.odenen)}</span></div>
+        <div class="flex justify-between text-xs"><span class="text-amber-600 font-medium">Kalan</span><span class="font-bold text-amber-700">${tl(m.ucret-m.odenen)}</span></div>
+      </div>` : ''}
     </div>` : ''}
     ${isSabit ? `
       <button class="btn-p" onclick="setMusteriOdeme('${id}','odendi');closeModal()">✅ Ödeme Alındı${ucretLabel}</button>
-      <button class="w-full py-3 rounded-xl border-2 border-blue-200 text-blue-600 font-semibold text-sm bg-white active:bg-blue-50" onclick="setMusteriOdeme('${id}','kismi');closeModal()">💰 Kısmi Ödeme Alındı</button>
+      <button class="w-full py-3 rounded-xl border-2 border-blue-200 text-blue-600 font-semibold text-sm bg-white active:bg-blue-50" onclick="openKismiOdemeForm('${id}')">💰 Kısmi Ödeme Alındı</button>
       ${ods!=='bekliyor'?`<button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-medium text-sm bg-white active:bg-slate-50" onclick="setMusteriOdeme('${id}','bekliyor');closeModal()">🔄 Yeniden Bekliyor'a Al</button>`:''}
     ` : `
       <button class="btn-p" onclick="closeModal();editId=null;openCekimForm({musteri:'${esc(m.isim)}',telefon:'${esc(m.telefon||'')}',ucret:${m.ucret||''}})">📷 Çekim Ekle${ucretLabel}</button>
@@ -869,6 +875,51 @@ function openMusteriActions(id) {
 async function setMusteriOdeme(id, durum) {
   try { await db.collection('musteriler').doc(id).update({ odeme_durumu: durum }); }
   catch(e) { alert('Hata: '+e.message); }
+}
+
+function openKismiOdemeForm(id) {
+  const m = musteriler.find(x => x.id===id);
+  if (!m) return;
+  const ucret = m.ucret || 0;
+  document.getElementById('modal-title').textContent = m.isim;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="space-y-4 pb-4">
+      <div class="rounded-xl bg-slate-50 p-3 flex items-center justify-between">
+        <p class="text-sm text-slate-500">Toplam Ücret</p>
+        <p class="font-bold text-slate-800">${tl(ucret)}</p>
+      </div>
+      <div>
+        <label class="lbl">Alınan Miktar (₺)</label>
+        <input id="kismi-inp" type="number" min="0" max="${ucret}" class="inp text-lg font-bold"
+          placeholder="0" value="${m.odenen||''}"
+          oninput="updateKismiKalan(${ucret})">
+      </div>
+      <div id="kismi-kalan-row" class="rounded-xl p-3 flex items-center justify-between ${m.odenen?'bg-amber-50':'bg-slate-50'}">
+        <p class="text-sm ${m.odenen?'text-amber-600':'text-slate-400'}">Kalan</p>
+        <p class="font-bold ${m.odenen?'text-amber-700':'text-slate-400'}" id="kismi-kalan-val">${tl(ucret-(m.odenen||0))}</p>
+      </div>
+      <button class="btn-p" onclick="saveKismiOdeme('${id}',${ucret})">Kaydet</button>
+      <button class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-medium text-sm bg-white" onclick="openMusteriActions('${id}')">← Geri</button>
+    </div>`;
+}
+
+function updateKismiKalan(ucret) {
+  const val = parseFloat(document.getElementById('kismi-inp').value) || 0;
+  const kalan = Math.max(0, ucret - val);
+  document.getElementById('kismi-kalan-val').textContent = tl(kalan);
+  const row = document.getElementById('kismi-kalan-row');
+  row.className = `rounded-xl p-3 flex items-center justify-between ${kalan>0?'bg-amber-50':'bg-emerald-50'}`;
+  row.querySelector('p:first-child').className = `text-sm ${kalan>0?'text-amber-600':'text-emerald-600'}`;
+  row.querySelector('p:last-child').className = `font-bold ${kalan>0?'text-amber-700':'text-emerald-700'}`;
+}
+
+async function saveKismiOdeme(id, ucret) {
+  const val = parseFloat(document.getElementById('kismi-inp').value) || 0;
+  const durum = val >= ucret ? 'odendi' : 'kismi';
+  try {
+    await db.collection('musteriler').doc(id).update({ odeme_durumu: durum, odenen: val });
+    closeModal();
+  } catch(e) { alert('Hata: '+e.message); }
 }
 function openMusteriForm(data) {
   const isEdit=!!data;
