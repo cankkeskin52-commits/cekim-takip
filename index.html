@@ -424,11 +424,11 @@ function listen() {
   });
   db.collection('musteriler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     musteriler = s.docs.map(d => ({id:d.id,...d.data()}));
-    renderMusteriler();
+    renderMusteriler(); renderDash();
   });
   db.collection('kurgular').orderBy('tarih','desc').onSnapshot(s => {
     kurgular = s.docs.map(d => ({id:d.id,...d.data()}));
-    renderKurgular();
+    renderKurgular(); renderDash();
   });
   db.collection('paketler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     paketler = s.docs.map(d => ({id:d.id,...d.data()}));
