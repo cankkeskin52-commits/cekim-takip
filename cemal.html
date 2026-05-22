@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>CEMAL — Prodüksiyon</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Inter','sans-serif'] },
+        colors: { brand: { 50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9' } }
+      }}
+    }
+  </script>
+  <style>
+    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#0b0f1a;min-height:100vh;color:#e2e8f0}
+    .section{display:none}.section.active{display:block}
+    .pb-nav{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+    .safe-bot{padding-bottom:env(safe-area-inset-bottom)}
+    .card{background:#131c2e;border-radius:16px;border:1px solid #1e2d42;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+    .card-tap{transition:transform .12s ease;cursor:pointer}.card-tap:active{transform:scale(.975)}
+    /* BADGES */
+    .badge-bekliyor{background:rgba(146,64,14,0.25);color:#fbbf24;border:1px solid rgba(146,64,14,0.4)}
+    .badge-odendi{background:rgba(22,101,52,0.25);color:#4ade80;border:1px solid rgba(22,101,52,0.4)}
+    .badge-kismi{background:rgba(30,58,138,0.3);color:#60a5fa;border:1px solid rgba(30,58,138,0.5)}
+    .badge-iptal{background:rgba(153,27,27,0.3);color:#f87171;border:1px solid rgba(153,27,27,0.4)}
+    .badge-devam{background:rgba(30,58,138,0.3);color:#60a5fa;border:1px solid rgba(30,58,138,0.5)}
+    .badge-tamamlandi{background:rgba(22,101,52,0.25);color:#4ade80;border:1px solid rgba(22,101,52,0.4)}
+    .badge-ben{background:rgba(91,33,182,0.3);color:#c4b5fd;border:1px solid rgba(91,33,182,0.5)}
+    .badge-ortak{background:rgba(157,23,77,0.3);color:#f9a8d4;border:1px solid rgba(157,23,77,0.4)}
+    .badge-ikimiz{background:rgba(30,58,138,0.3);color:#60a5fa;border:1px solid rgba(30,58,138,0.5)}
+    @keyframes slideUp{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-sheet{animation:slideUp .22s cubic-bezier(.22,1,.36,1)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:28px;height:28px;border:3px solid #2e1065;border-top-color:#8b5cf6;border-radius:50%;animation:spin .7s linear infinite}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#7c3aed!important;box-shadow:0 0 0 3px rgba(124,58,237,.18)}
+    ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:#1e2d42;border-radius:2px}
+    .nav-active svg,.nav-active span{color:#a78bfa!important}
+    .chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;border:none}
+    .chip-on{background:#7c3aed;color:#fff}
+    .chip-off{background:#131c2e;color:#475569;border:1px solid #1e2d42}
+    .seg{padding:7px 0;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;flex:1;text-align:center;transition:all .15s;border:none}
+    .seg-on{background:#1e2d42;color:#e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+    .seg-off{background:transparent;color:#475569}
+    .lbl{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+    .inp{width:100%;padding:10px 12px;border:1.5px solid #1e2d42;border-radius:12px;font-size:14px;font-family:inherit;background:#0b0f1a;color:#e2e8f0}
+    .inp::placeholder{color:#334155}
+    .btn-p{width:100%;padding:13px;border-radius:12px;background:#7c3aed;color:#fff;font-weight:600;font-size:14px;border:none;cursor:pointer}
+    .btn-p:active{background:#6d28d9}.btn-p:disabled{background:#3b0764;opacity:.6;cursor:not-allowed}
+    .btn-d{width:100%;padding:11px;border-radius:12px;border:1.5px solid rgba(239,68,68,.3);color:#f87171;font-weight:500;font-size:14px;background:transparent;cursor:pointer}
+    .rcard{flex:1}.rcard input{display:none}
+    .rcard-inner{border:1.5px solid #1e2d42;border-radius:12px;padding:10px;text-align:center;cursor:pointer;transition:all .15s;background:#0b0f1a;color:#94a3b8}
+    .rcard input:checked~.rcard-inner{border-color:#7c3aed;background:rgba(124,58,237,.15)}
+    .empty{text-align:center;padding:44px 16px;color:#1e2d42}
+    .empty svg{margin:0 auto 10px;color:#1e2d42!important;stroke:#1e2d42!important}
+    /* Calendar */
+    .cal-day{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:10px;cursor:pointer;min-height:44px}
+    .cal-day:active{background:#131c2e}
+    .cal-day.today{background:#7c3aed}
+    .cal-day.today .cal-num{color:#fff}
+    .cal-day.has-shoot:not(.today){background:rgba(124,58,237,.18)}
+    .cal-day.has-shoot:not(.today) .cal-num{color:#a78bfa;font-weight:700}
+    .cal-day.selected:not(.today){background:rgba(124,58,237,.12)}
+    .cal-num{font-size:13px;font-weight:500;color:#475569;line-height:1}
+    .cal-dots{display:flex;gap:2px;margin-top:3px;height:5px;align-items:center}
+    .cal-dot{width:4px;height:4px;border-radius:50%;background:#7c3aed;flex-shrink:0}
+    .cal-dot.today{background:#fff}
+    .cal-empty{min-height:44px}
+    /* ── Dark Tailwind overrides ── */
+    .bg-white{background:#131c2e!important}
+    .bg-slate-50{background:#0f1729!important}
+    .bg-slate-100{background:#131c2e!important}
+    .text-slate-900{color:#f1f5f9!important}
+    .text-slate-800{color:#e2e8f0!important}
+    .text-slate-700{color:#cbd5e1!important}
+    .text-slate-600{color:#94a3b8!important}
+    .text-slate-500{color:#64748b!important}
+    .border-slate-50{border-color:rgba(30,45,66,.6)!important}
+    .border-slate-100{border-color:#1e2d42!important}
+    .border-slate-200{border-color:#1e2d42!important}
+    .bg-brand-50{background:rgba(124,58,237,.1)!important}
+    .bg-brand-100{background:rgba(124,58,237,.2)!important}
+    .text-brand-600{color:#a78bfa!important}
+    .text-brand-400{color:#c4b5fd!important}
+    .text-brand-200{color:#ddd6fe!important}
+    .text-brand-700{color:#8b5cf6!important}
+    .bg-brand-600{background:#7c3aed!important}
+    .shadow-sm{box-shadow:0 2px 10px rgba(0,0,0,.5)!important}
+    .shadow-lg,.shadow-xl{box-shadow:0 15px 40px rgba(0,0,0,.7)!important}
+    .bg-emerald-50{background:rgba(6,78,59,.2)!important}
+    .text-emerald-600{color:#34d399!important}
+    .text-emerald-700{color:#34d399!important}
+    .text-emerald-500{color:#34d399!important}
+    .bg-red-50{background:rgba(127,29,29,.2)!important}
+    .text-red-400{color:#f87171!important}
+    .text-red-500{color:#f87171!important}
+    .text-red-600{color:#fca5a5!important}
+    .bg-amber-100{background:rgba(120,53,15,.3)!important}
+    .bg-amber-50{background:rgba(120,53,15,.15)!important}
+    .text-amber-700{color:#fbbf24!important}
+    .text-amber-600{color:#f59e0b!important}
+    .border-fecaca{border-color:rgba(239,68,68,.25)!important}
+    .border-blue-200{border-color:rgba(30,64,175,.5)!important}
+    .text-blue-600{color:#93c5fd!important}
+    .text-blue-500{color:#60a5fa!important}
+    .bg-violet-100{background:rgba(91,33,182,.2)!important}
+    .text-violet-600{color:#c4b5fd!important}
+    .bg-orange-100{background:rgba(124,45,18,.2)!important}
+    .text-orange-500{color:#fb923c!important}
+    .text-blue-600,.active\:bg-blue-50{color:#93c5fd!important}
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center" style="background:#0b0f1a">
+  <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)">
+    <span class="font-black text-white text-xl tracking-tight">C</span>
+  </div>
+  <p class="font-bold text-slate-200 text-lg tracking-wide">CEMAL</p>
+  <p class="text-slate-500 text-xs mt-0.5">Yükleniyor…</p>
+  <div class="spinner mt-5"></div>
+</div>
+
+<!-- APP -->
+<div id="app" class="max-w-lg mx-auto" style="display:none">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-20 backdrop-blur-lg border-b flex items-center justify-between px-4 pb-3"
+    style="background:rgba(11,15,26,.9);border-color:#1e2d42;padding-top:calc(env(safe-area-inset-top) + 12px)">
+    <div>
+      <p class="font-bold text-slate-100 text-base leading-snug" id="hdr-title">Ana Sayfa</p>
+      <p class="text-xs text-slate-500" id="hdr-sub">Genel özet</p>
+    </div>
+    <button id="hdr-add" onclick="onAddClick()"
+      class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+      style="background:#7c3aed">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- MAIN -->
+  <main class="pb-nav">
+
+    <!-- DASHBOARD -->
+    <section id="sec-dashboard" class="section active p-4 space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="card p-4">
+          <p class="text-xs text-slate-500 font-medium">Bu Ay Gelir</p>
+          <p class="text-xl font-bold text-emerald-400 mt-1" id="d-gelir">₺0</p>
+          <p class="text-xs text-slate-600 mt-0.5" id="d-gelir-c">0 işlem</p>
+        </div>
+        <div class="card p-4">
+          <p class="text-xs text-slate-500 font-medium">Bu Ay Gider</p>
+          <p class="text-xl font-bold text-red-400 mt-1" id="d-gider">₺0</p>
+          <p class="text-xs text-slate-600 mt-0.5" id="d-gider-c">0 işlem</p>
+        </div>
+        <div class="col-span-2 rounded-2xl p-4" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)">
+          <p class="text-xs font-medium" style="color:#c4b5fd">Net Kâr — Bu Ay</p>
+          <p class="text-3xl font-bold text-white mt-1" id="d-net">₺0</p>
+          <p class="text-xs mt-0.5" style="color:#c4b5fd" id="d-net-s">Hesaplanıyor…</p>
+        </div>
+      </div>
+
+      <div class="card overflow-hidden">
+        <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid #1e2d42">
+          <p class="text-sm font-semibold text-slate-200">Bekleyen Ödemeler</p>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(146,64,14,.3);color:#fbbf24" id="d-bek-n">0</span>
+        </div>
+        <div id="d-bek-list"></div>
+      </div>
+
+      <div class="card overflow-hidden">
+        <div class="px-4 py-3" style="border-bottom:1px solid #1e2d42">
+          <p class="text-sm font-semibold text-slate-200">Yaklaşan Çekimler</p>
+        </div>
+        <div id="d-yas-list"></div>
+      </div>
+    </section>
+
+    <!-- ÇEKİMLER -->
+    <section id="sec-cekimler" class="section p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="shiftCekim(-1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-200 text-sm" id="cek-month">—</p>
+        <button onclick="shiftCekim(1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="flex gap-2 overflow-x-auto pb-2 mb-3" id="ck-chips">
+        <button class="chip chip-on"  onclick="setCekimFilter('hepsi',this)">Hepsi</button>
+        <button class="chip chip-off" onclick="setCekimFilter('bekliyor',this)">Bekliyor</button>
+        <button class="chip chip-off" onclick="setCekimFilter('kismi',this)">Kısmi</button>
+        <button class="chip chip-off" onclick="setCekimFilter('odendi',this)">Ödendi</button>
+        <button class="chip chip-off" onclick="setCekimFilter('iptal',this)">İptal</button>
+      </div>
+      <div id="cekim-list" class="space-y-3"></div>
+    </section>
+
+    <!-- TAKVİM -->
+    <section id="sec-takvim" class="section p-4">
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="shiftTak(-1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-200 text-sm" id="tak-month">—</p>
+        <button onclick="shiftTak(1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="card p-3 mb-4">
+        <div class="grid grid-cols-7 text-center mb-2">
+          <span class="text-[11px] font-semibold text-slate-500">Pzt</span>
+          <span class="text-[11px] font-semibold text-slate-500">Sal</span>
+          <span class="text-[11px] font-semibold text-slate-500">Çar</span>
+          <span class="text-[11px] font-semibold text-slate-500">Per</span>
+          <span class="text-[11px] font-semibold text-slate-500">Cum</span>
+          <span class="text-[11px] font-semibold" style="color:#f59e0b">Cmt</span>
+          <span class="text-[11px] font-semibold" style="color:#f87171">Paz</span>
+        </div>
+        <div id="tak-grid" class="grid grid-cols-7 gap-1"></div>
+      </div>
+      <div id="tak-detail" class="space-y-3">
+        <p class="text-slate-500 text-sm text-center py-4">Çekimi görmek için güne dokunun</p>
+      </div>
+    </section>
+
+    <!-- FİNANS -->
+    <section id="sec-finans" class="section p-4">
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="shiftMonth(-1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-200 text-sm" id="fin-month">—</p>
+        <button onclick="shiftMonth(1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="rounded-xl p-3 text-center" style="background:rgba(6,78,59,.2);border:1px solid rgba(6,78,59,.3)">
+          <p class="text-xs font-medium text-emerald-400">Gelir</p>
+          <p class="text-base font-bold text-emerald-300 mt-1" id="fin-gelir">₺0</p>
+        </div>
+        <div class="rounded-xl p-3 text-center" style="background:rgba(127,29,29,.2);border:1px solid rgba(127,29,29,.3)">
+          <p class="text-xs font-medium text-red-400">Gider</p>
+          <p class="text-base font-bold text-red-300 mt-1" id="fin-gider">₺0</p>
+        </div>
+        <div class="rounded-xl p-3 text-center" style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3)">
+          <p class="text-xs font-medium text-violet-400">Net</p>
+          <p class="text-base font-bold text-violet-300 mt-1" id="fin-net">₺0</p>
+        </div>
+      </div>
+      <div class="flex gap-1 p-1 rounded-xl mb-4" id="fin-segs" style="background:#0f1729">
+        <button class="seg seg-on"  onclick="setFinansFilter('hepsi',this)">Hepsi</button>
+        <button class="seg seg-off" onclick="setFinansFilter('gelir',this)">Gelir</button>
+        <button class="seg seg-off" onclick="setFinansFilter('gider',this)">Gider</button>
+      </div>
+      <div id="finans-list" class="space-y-2"></div>
+    </section>
+
+    <!-- MÜŞTERİLER -->
+    <section id="sec-musteriler" class="section p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button onclick="shiftMus(-1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <p class="font-semibold text-slate-200 text-sm" id="mus-month">—</p>
+        <button onclick="shiftMus(1)" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:#131c2e;border:1px solid #1e2d42">
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="flex gap-1 p-1 rounded-xl mb-4" id="mus-segs" style="background:#0f1729">
+        <button class="seg seg-on"  onclick="setMusteriTab('musteriler',this)">Müşteriler</button>
+        <button class="seg seg-off" onclick="setMusteriTab('kurgular',this)">Kurgular</button>
+        <button class="seg seg-off" onclick="setMusteriTab('paketler',this)">Paketler</button>
+      </div>
+      <div id="mt-musteriler"><div id="mus-list"  class="space-y-3"></div></div>
+      <div id="mt-kurgular"  class="hidden"><div id="kur-list"  class="space-y-3"></div></div>
+      <div id="mt-paketler"  class="hidden"><div id="pak-list"  class="space-y-3"></div></div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="safe-bot fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-20" style="background:#0b0f1a;border-top:1px solid #1e2d42">
+    <div class="grid grid-cols-5">
+      <button class="nav-btn nav-active flex flex-col items-center py-2 gap-0.5" data-tab="dashboard"  onclick="goTo('dashboard')">
+        <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="text-[9px] font-medium text-slate-600">Anasayfa</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center py-2 gap-0.5" data-tab="cekimler" onclick="goTo('cekimler')">
+        <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.874V15.126a1 1 0 01-1.447.943L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <span class="text-[9px] font-medium text-slate-600">Çekimler</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center py-2 gap-0.5" data-tab="takvim" onclick="goTo('takvim')">
+        <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="text-[9px] font-medium text-slate-600">Takvim</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center py-2 gap-0.5" data-tab="finans" onclick="goTo('finans')">
+        <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-[9px] font-medium text-slate-600">Finans</span>
+      </button>
+      <button class="nav-btn flex flex-col items-center py-2 gap-0.5" data-tab="musteriler" onclick="goTo('musteriler')">
+        <svg class="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[9px] font-medium text-slate-600">Müşteriler</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- MODAL SHEET -->
+<div id="modal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden" onclick="maybeClose(event)">
+  <div class="modal-sheet rounded-t-3xl w-full max-w-lg max-h-[90vh] flex flex-col" style="background:#131c2e" onclick="event.stopPropagation()">
+    <div class="shrink-0 flex items-center justify-between px-5 pt-5 pb-4" style="border-bottom:1px solid #1e2d42">
+      <h2 class="font-bold text-slate-100 text-base" id="modal-title"></h2>
+      <button onclick="closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center" style="background:#1e2d42">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="modal-body" class="overflow-y-auto px-5 py-4 flex-1"></div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div id="del-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-5 hidden">
+  <div class="modal-sheet rounded-2xl p-5 w-full max-w-xs" style="background:#131c2e;border:1px solid #1e2d42;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+    <p class="font-bold text-slate-100 mb-1.5">Silmek istediğinize emin misiniz?</p>
+    <p class="text-slate-500 text-sm mb-5" id="del-msg"></p>
+    <div class="flex gap-2">
+      <button onclick="closeDel()" class="flex-1 py-2.5 rounded-xl text-slate-300 text-sm font-medium" style="border:1px solid #1e2d42;background:#0b0f1a">İptal</button>
+      <button onclick="doDelete()" class="flex-1 py-2.5 rounded-xl text-white text-sm font-medium" style="background:#dc2626">Evet, Sil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────
+let db;
+let curTab = 'dashboard', curMusTab = 'musteriler';
+let editId = null, delCol = null, delId = null;
+let cekimler = [], finans = [], musteriler = [], kurgular = [], paketler = [];
+let cekimFilter = 'hepsi', finansFilter = 'hepsi';
+let cekY, cekM, finY, finM, takY, takM, musY, musM, takDay = null;
+
+// ─────────────────────────────────────
+//  FIREBASE — aynı veritabanı
+// ─────────────────────────────────────
+const DEFAULT_CFG = {
+  apiKey: "AIzaSyAeYOc5tufXdy2DVt1Fdxmq3j1PP4-vpeE",
+  authDomain: "clensmedya-a08a5.firebaseapp.com",
+  projectId: "clensmedya-a08a5",
+  storageBucket: "clensmedya-a08a5.firebasestorage.app",
+  messagingSenderId: "660181304150",
+  appId: "1:660181304150:web:cf761acd0264ed5e848cf7"
+};
+
+function initFirebase() {
+  let cfg;
+  try { const r = localStorage.getItem('fb_cfg'); cfg = r ? JSON.parse(r) : DEFAULT_CFG; }
+  catch(e) { cfg = DEFAULT_CFG; }
+  try { firebase.initializeApp(cfg); db = firebase.firestore(); return true; }
+  catch(e) { console.error('Firebase:', e); return false; }
+}
+
+// ─────────────────────────────────────
+//  NAV
+// ─────────────────────────────────────
+const TAB_META = {
+  dashboard:  { title:'Ana Sayfa',    sub:'Genel özet' },
+  cekimler:   { title:'Çekimler',     sub:'Planlama ve ödeme takibi' },
+  takvim:     { title:'Takvim',       sub:'Aylık çekim takvimi', noAdd:true },
+  finans:     { title:'Finans',       sub:'Gelir ve gider' },
+  musteriler: { title:'Müşteriler',   sub:'Müşteri ve kurgu yönetimi' },
+};
+
+function goTo(tab) {
+  curTab = tab;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('nav-active');
+  const m = TAB_META[tab];
+  document.getElementById('hdr-title').textContent = m.title;
+  document.getElementById('hdr-sub').textContent   = m.sub;
+  document.getElementById('hdr-add').style.visibility = m.noAdd ? 'hidden' : 'visible';
+  if (tab === 'takvim') renderTakvim();
+  window.scrollTo({ top:0 });
+}
+
+function onAddClick() {
+  editId = null;
+  if (curTab === 'dashboard')  { openQuickAdd(); return; }
+  if (curTab === 'cekimler')   { openCekimForm(null); return; }
+  if (curTab === 'finans')     { openFinansForm(null); return; }
+  if (curTab === 'musteriler') {
+    if (curMusTab === 'kurgular') openKurguForm(null);
+    else if (curMusTab === 'paketler') openPaketForm(null);
+    else openMusteriForm(null);
+  }
+}
+
+function openQuickAdd() {
+  document.getElementById('modal-title').textContent = 'Ne eklemek istersiniz?';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="pb-4 space-y-2">
+      <button onclick="closeModal();setTimeout(()=>openCekimForm(null),150)"
+        class="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-colors"
+        style="background:#0f1729;border:1px solid #1e2d42">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,58,237,.2)">
+          <svg class="w-5 h-5" style="color:#a78bfa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.874V15.126a1 1 0 01-1.447.943L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </div>
+        <div><p class="font-semibold text-slate-200">Çekim Ekle</p><p class="text-xs text-slate-500 mt-0.5">Müşteri, tarih, ücret, ödeme</p></div>
+      </button>
+      <button onclick="closeModal();setTimeout(()=>openFinansForm(null),150)"
+        class="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-colors"
+        style="background:#0f1729;border:1px solid #1e2d42">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(6,78,59,.2)">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div><p class="font-semibold text-slate-200">Gelir / Gider Ekle</p><p class="text-xs text-slate-500 mt-0.5">Finansal kayıt ekle</p></div>
+      </button>
+      <button onclick="closeModal();setTimeout(()=>openMusteriForm(null),150)"
+        class="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-colors"
+        style="background:#0f1729;border:1px solid #1e2d42">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(91,33,182,.2)">
+          <svg class="w-5 h-5" style="color:#c4b5fd" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div><p class="font-semibold text-slate-200">Müşteri Ekle</p><p class="text-xs text-slate-500 mt-0.5">Yeni müşteri kaydı</p></div>
+      </button>
+      <button onclick="closeModal();setTimeout(()=>openKurguForm(null),150)"
+        class="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-colors"
+        style="background:#0f1729;border:1px solid #1e2d42">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,45,18,.2)">
+          <svg class="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+        </div>
+        <div><p class="font-semibold text-slate-200">Kurgu Ekle</p><p class="text-xs text-slate-500 mt-0.5">Kurgu işi takibi</p></div>
+      </button>
+    </div>`;
+  openModal();
+}
+
+// ─────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────
+function tl(n)     { return '₺' + Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function toDate(ts){ return ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : null; }
+function fmtDate(ts){ const d=toDate(ts); return d ? d.toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+function fmtShort(ts){ const d=toDate(ts); return d ? d.toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}) : '—'; }
+function isoVal(ts)  { const d=toDate(ts); return d ? d.toISOString().split('T')[0] : today(); }
+function today()     { return new Date().toISOString().split('T')[0]; }
+function esc(s)      { return (s||'').replace(/'/g,"\\'"); }
+function hide(id)    { document.getElementById(id).style.display='none'; }
+function show(id)    { document.getElementById(id).style.display=''; }
+
+const SL   = { bekliyor:'Bekliyor', odendi:'Ödendi', kismi:'Kısmi', iptal:'İptal' };
+const ODLBL = { bekliyor:'Bekliyor', kismi:'Kısmi Ödeme', odendi:'Ödendi' };
+const KL  = { bekliyor:'Bekliyor', devam:'Devam Ediyor', tamamlandi:'Tamamlandı' };
+const KIM = { ben:'Ben', ortak:'Ortak', ikimiz:'İkimiz' };
+const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const GKATS  = ['Çekim Ücreti','Kurgu Ücreti','Proje Ücreti','Diğer Gelir'];
+const GIKATS = ['Ekipman','Ulaşım','Kira','Yazılım','Pazarlama','Personel','Diğer Gider'];
+
+// ─────────────────────────────────────
+//  LISTENERS
+// ─────────────────────────────────────
+function listen() {
+  db.collection('cekimler').orderBy('tarih','desc').onSnapshot(s => {
+    cekimler = s.docs.map(d => ({id:d.id,...d.data()}));
+    renderCekimler(); renderDash(); if(curTab==='takvim') renderTakvim();
+  });
+  db.collection('gelir_gider').orderBy('tarih','desc').onSnapshot(s => {
+    finans = s.docs.map(d => ({id:d.id,...d.data()}));
+    renderFinans(); renderDash();
+  });
+  db.collection('musteriler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
+    musteriler = s.docs.map(d => ({id:d.id,...d.data()}));
+    renderMusteriler(); renderDash();
+  });
+  db.collection('kurgular').orderBy('tarih','desc').onSnapshot(s => {
+    kurgular = s.docs.map(d => ({id:d.id,...d.data()}));
+    renderKurgular(); renderDash();
+  });
+  db.collection('paketler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
+    paketler = s.docs.map(d => ({id:d.id,...d.data()}));
+    renderPaketler();
+  });
+}
+
+// ─────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────
+function renderDash() {
+  const now = new Date();
+  const ms  = new Date(now.getFullYear(), now.getMonth(), 1);
+  const me  = new Date(now.getFullYear(), now.getMonth()+1, 0, 23,59,59);
+  const mf  = finans.filter(f => { const d=toDate(f.tarih); return d&&d>=ms&&d<=me; });
+  const gel = mf.filter(f=>f.tip==='gelir').reduce((a,f)=>a+(f.tutar||0),0);
+  const gid = mf.filter(f=>f.tip==='gider').reduce((a,f)=>a+(f.tutar||0),0);
+  const net = gel - gid;
+
+  document.getElementById('d-gelir').textContent   = tl(gel);
+  document.getElementById('d-gelir-c').textContent = mf.filter(f=>f.tip==='gelir').length + ' işlem';
+  document.getElementById('d-gider').textContent   = tl(gid);
+  document.getElementById('d-gider-c').textContent = mf.filter(f=>f.tip==='gider').length + ' işlem';
+  document.getElementById('d-net').textContent     = tl(net);
+  document.getElementById('d-net-s').textContent   = net >= 0 ? '✅ Kârlı ay' : '⚠️ Zararda';
+
+  const bekCek = cekimler.filter(c => c.odeme_durumu==='bekliyor' || c.odeme_durumu==='kismi');
+  const bekMus = musteriler.filter(m => m.tip==='sabit' && m.ucret>0 && (dashOds(m)==='bekliyor'||dashOds(m)==='kismi'));
+  const bekTot = bekCek.length + bekMus.length;
+  document.getElementById('d-bek-n').textContent = bekTot;
+  const bl = document.getElementById('d-bek-list');
+  if (!bekTot) { bl.innerHTML = '<div class="empty py-8"><p class="text-sm text-slate-600">Bekleyen ödeme yok 🎉</p></div>'; }
+  else {
+    const cekRows = bekCek.slice(0,4).map(c => `
+      <div class="px-4 py-3 flex items-center justify-between card-tap" style="border-bottom:1px solid #1e2d42" onclick="editCekim('${c.id}')">
+        <div><p class="text-sm font-medium text-slate-200">${c.musteri||'—'}</p>
+             <p class="text-xs text-slate-500">${fmtShort(c.tarih)}${c.lokasyon?' · '+c.lokasyon:''}</p></div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-slate-200">${tl(c.ucret)}</p>
+          <span class="text-xs px-2 py-0.5 rounded-full badge-${c.odeme_durumu}">${SL[c.odeme_durumu]}</span>
+        </div>
+      </div>`);
+    const musRows = bekMus.slice(0,4).map(m => `
+      <div class="px-4 py-3 flex items-center justify-between card-tap" style="border-bottom:1px solid #1e2d42" onclick="openMusteriActions('${m.id}')">
+        <div><p class="text-sm font-medium text-slate-200">${m.isim||'—'}</p>
+             <p class="text-xs text-slate-500">Sabit Müşteri</p></div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-slate-200">${tl(m.ucret)}</p>
+          <span class="text-xs px-2 py-0.5 rounded-full badge-${dashOds(m)}">${ODLBL[dashOds(m)]}</span>
+        </div>
+      </div>`);
+    bl.innerHTML = [...cekRows, ...musRows].join('');
+  }
+
+  const yas = cekimler.filter(c => { const d=toDate(c.tarih); return d&&d>=now; })
+    .sort((a,b) => toDate(a.tarih)-toDate(b.tarih));
+  const yl = document.getElementById('d-yas-list');
+  yl.innerHTML = yas.length
+    ? yas.slice(0,5).map(c => {
+        const d = toDate(c.tarih);
+        return `<div class="px-4 py-3 flex items-center gap-3 card-tap" style="border-bottom:1px solid #1e2d42" onclick="editCekim('${c.id}')">
+          <div class="w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0" style="background:rgba(124,58,237,.15)">
+            <span class="text-[11px] font-bold leading-none" style="color:#a78bfa">${d.getDate()}</span>
+            <span class="text-[9px] font-bold uppercase" style="color:#7c3aed">${d.toLocaleDateString('tr-TR',{month:'short'})}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-200 truncate">${c.musteri||'—'}</p>
+            <p class="text-xs text-slate-500">${c.saat||''}${c.lokasyon?' · '+c.lokasyon:''}</p>
+          </div>
+          <p class="text-sm font-bold text-slate-300">${tl(c.ucret)}</p>
+        </div>`;
+      }).join('')
+    : '<div class="empty py-8"><p class="text-sm text-slate-600">Yaklaşan çekim yok</p></div>';
+}
+
+// ─────────────────────────────────────
+//  ÇEKİMLER
+// ─────────────────────────────────────
+function shiftCekim(d) {
+  cekM += d;
+  if (cekM > 11) { cekM=0; cekY++; }
+  if (cekM <  0) { cekM=11; cekY--; }
+  renderCekimler();
+}
+function shiftMus(d) {
+  musM += d;
+  if (musM > 11) { musM=0; musY++; }
+  if (musM <  0) { musM=11; musY--; }
+  document.getElementById('mus-month').textContent = `${MONTHS[musM]} ${musY}`;
+  renderMusteriler();
+}
+function mKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+function musOds(m)    { return m.odeme_gecmisi?.[mKey(musY,musM)]?.durum  || 'bekliyor'; }
+function musOdenen(m) { return m.odeme_gecmisi?.[mKey(musY,musM)]?.odenen || 0; }
+function dashOds(m)   { const n=new Date(); return m.odeme_gecmisi?.[mKey(n.getFullYear(),n.getMonth())]?.durum || 'bekliyor'; }
+function dashOdenen(m){ const n=new Date(); return m.odeme_gecmisi?.[mKey(n.getFullYear(),n.getMonth())]?.odenen|| 0; }
+
+function setCekimFilter(f, btn) {
+  cekimFilter = f;
+  document.querySelectorAll('#ck-chips .chip').forEach(b => { b.classList.remove('chip-on'); b.classList.add('chip-off'); });
+  btn.classList.replace('chip-off','chip-on');
+  renderCekimler();
+}
+
+function renderCekimler() {
+  document.getElementById('cek-month').textContent = `${MONTHS[cekM]} ${cekY}`;
+  const monthly = cekimler.filter(c => { const d=toDate(c.tarih); return d&&d.getFullYear()===cekY&&d.getMonth()===cekM; });
+  const data = cekimFilter==='hepsi' ? monthly : monthly.filter(c => c.odeme_durumu===cekimFilter);
+  const el = document.getElementById('cekim-list');
+  if (!data.length) {
+    el.innerHTML = `<div class="empty">
+      <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.874V15.126a1 1 0 01-1.447.943L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      <p class="text-sm mt-2 text-slate-600">${cekimFilter==='hepsi'?'Henüz çekim yok':'Bu filtrede kayıt yok'}</p>
+      ${cekimFilter==='hepsi'?'<p class="text-xs mt-1 text-slate-700">+ butonuna basarak ekleyin</p>':''}
+    </div>`; return;
+  }
+  el.innerHTML = data.map(c => `
+    <div class="card card-tap overflow-hidden" onclick="editCekim('${c.id}')">
+      <div class="p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <p class="font-semibold text-slate-100">${c.musteri||'—'}</p>
+            ${c.telefon?`<p class="text-xs text-slate-500 mt-0.5">${c.telefon}</p>`:''}
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <span class="text-xs px-2.5 py-1 rounded-full font-medium badge-${c.odeme_durumu||'bekliyor'}">${SL[c.odeme_durumu]||'—'}</span>
+            ${c.kimler&&c.kimler!=='ben'?`<span class="text-xs px-2 py-0.5 rounded-full font-medium badge-${c.kimler}">${KIM[c.kimler]}</span>`:''}
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500">
+          <span>📅 ${fmtDate(c.tarih)}</span>
+          ${c.saat?`<span>🕐 ${c.saat}</span>`:''}
+          ${c.lokasyon?`<span>📍 ${c.lokasyon}</span>`:''}
+        </div>
+        <div class="flex items-center justify-between mt-3 pt-3" style="border-top:1px solid #1e2d42">
+          <div>
+            <p class="text-lg font-bold text-slate-100">${tl(c.ucret)}</p>
+            ${c.odeme_durumu==='kismi'?`<p class="text-xs text-blue-400">Ödenen: ${tl(c.odenen)}</p>`:''}
+          </div>
+          <button onclick="event.stopPropagation();askDel('cekimler','${c.id}','${esc(c.musteri)} çekimini')"
+            class="p-2 rounded-lg text-slate-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editCekim(id) { editId=id; openCekimForm(cekimler.find(c=>c.id===id)); }
+
+function openCekimForm(data) {
+  const isEdit = !!data;
+  const pakOpts = paketler.length
+    ? `<option value="">— Paket seçme —</option>` + paketler.map(p=>`<option value="${p.fiyat}" data-isim="${esc(p.isim)}">${p.isim} — ${tl(p.fiyat)}</option>`).join('')
+    : '<option value="">Paket yok</option>';
+  document.getElementById('modal-title').textContent = isEdit ? 'Çekimi Düzenle' : 'Yeni Çekim';
+  document.getElementById('modal-body').innerHTML = `
+    <form onsubmit="saveCekim(event)" class="space-y-4 pb-4">
+      <div><label class="lbl">Müşteri Adı *</label>
+        <input name="musteri" class="inp" required placeholder="Ahmet Yılmaz" value="${esc(data?.musteri||'')}"></div>
+      <div><label class="lbl">Telefon</label>
+        <input name="telefon" type="tel" class="inp" placeholder="05xx xxx xxxx" value="${esc(data?.telefon||'')}"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl">Tarih *</label>
+          <input name="tarih" type="date" class="inp" required value="${data?isoVal(data.tarih):today()}"></div>
+        <div><label class="lbl">Saat</label>
+          <input name="saat" type="time" class="inp" value="${data?.saat||''}"></div>
+      </div>
+      <div><label class="lbl">Lokasyon</label>
+        <input name="lokasyon" class="inp" placeholder="İstanbul, Beşiktaş" value="${esc(data?.lokasyon||'')}"></div>
+      <div><label class="lbl">Kim Gitti?</label>
+        <div class="flex gap-2">
+          ${[['ben','Ben'],['ortak','Ortak'],['ikimiz','İkimiz']].map(([v,l])=>`
+          <label class="rcard"><input type="radio" name="kimler" value="${v}" ${(data?.kimler||'ben')===v?'checked':''}>
+            <div class="rcard-inner py-2"><p class="text-sm font-semibold text-slate-300">${l}</p></div></label>`).join('')}
+        </div>
+      </div>
+      ${paketler.length?`<div><label class="lbl">Paket Seç (opsiyonel)</label>
+        <select id="paket-sec" class="inp" onchange="applyPaket(this)">${pakOpts}</select></div>`:''}
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl">Ücret (₺) *</label>
+          <input name="ucret" type="number" min="0" id="cekim-ucret" class="inp" required placeholder="5000" value="${data?.ucret||''}"></div>
+        <div><label class="lbl">Ödeme Durumu</label>
+          <select name="odeme_durumu" class="inp" onchange="toggleOdenen(this.value)">
+            <option value="bekliyor" ${(data?.odeme_durumu||'bekliyor')==='bekliyor'?'selected':''}>Bekliyor</option>
+            <option value="kismi"    ${data?.odeme_durumu==='kismi'?'selected':''}>Kısmi Ödeme</option>
+            <option value="odendi"   ${data?.odeme_durumu==='odendi'?'selected':''}>Ödendi</option>
+            <option value="iptal"    ${data?.odeme_durumu==='iptal'?'selected':''}>İptal</option>
+          </select></div>
+      </div>
+      <div id="odenen-row" class="${data?.odeme_durumu==='kismi'?'':'hidden'}">
+        <label class="lbl">Ödenen Miktar (₺)</label>
+        <input name="odenen" type="number" min="0" class="inp" placeholder="2500" value="${data?.odenen||''}">
+      </div>
+      <div><label class="lbl">Notlar</label>
+        <textarea name="notlar" class="inp resize-none" rows="2" placeholder="Ek bilgiler…">${data?.notlar||''}</textarea></div>
+      <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
+    </form>`;
+  openModal();
+}
+
+function applyPaket(sel) {
+  const fiyat = sel.value;
+  const inp = document.getElementById('cekim-ucret');
+  if (fiyat && inp) inp.value = fiyat;
+}
+function toggleOdenen(v) {
+  const row = document.getElementById('odenen-row');
+  if (row) row.classList.toggle('hidden', v !== 'kismi');
+}
+
+async function saveCekim(e) {
+  e.preventDefault();
+  const f = e.target;
+  await doSave('cekimler', {
+    musteri: f.musteri.value.trim(), telefon: f.telefon.value.trim(),
+    tarih: firebase.firestore.Timestamp.fromDate(new Date(f.tarih.value)),
+    saat: f.saat.value, lokasyon: f.lokasyon.value.trim(),
+    ucret: parseFloat(f.ucret.value)||0,
+    kimler: f.kimler.value,
+    odeme_durumu: f.odeme_durumu.value,
+    odenen: parseFloat(f.odenen?.value)||0,
+    notlar: f.notlar.value.trim(),
+  }, e);
+}
+
+// ─────────────────────────────────────
+//  TAKVİM
+// ─────────────────────────────────────
+function shiftTak(d) {
+  takM += d;
+  if (takM > 11) { takM=0; takY++; }
+  if (takM <  0) { takM=11; takY--; }
+  takDay = null;
+  renderTakvim();
+}
+
+function renderTakvim() {
+  document.getElementById('tak-month').textContent = `${MONTHS[takM]} ${takY}`;
+  const firstDow  = new Date(takY, takM, 1).getDay();
+  const offset    = (firstDow + 6) % 7;
+  const daysInMon = new Date(takY, takM+1, 0).getDate();
+  const todayD    = new Date();
+  const byDay = {};
+  cekimler.forEach(c => {
+    const d = toDate(c.tarih);
+    if (d && d.getFullYear()===takY && d.getMonth()===takM) {
+      const day = d.getDate();
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(c);
+    }
+  });
+  let html = '';
+  for (let i = 0; i < offset; i++) html += '<div class="cal-empty"></div>';
+  for (let day = 1; day <= daysInMon; day++) {
+    const shoots   = byDay[day] || [];
+    const isToday  = todayD.getFullYear()===takY && todayD.getMonth()===takM && todayD.getDate()===day;
+    const isSel    = takDay === day;
+    const hasSh    = shoots.length > 0;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    else if (isSel) cls += ' selected has-shoot';
+    else if (hasSh) cls += ' has-shoot';
+    html += `<div class="${cls}" onclick="selectTakDay(${day})">
+      <span class="cal-num">${day}</span>
+      <div class="cal-dots">${shoots.slice(0,3).map(()=>`<span class="cal-dot${isToday?' today':''}"></span>`).join('')}</div>
+    </div>`;
+  }
+  document.getElementById('tak-grid').innerHTML = html;
+  if (takDay) showTakDay(takDay);
+  else document.getElementById('tak-detail').innerHTML = '<p class="text-slate-600 text-sm text-center py-4">Çekimi görmek için güne dokunun</p>';
+}
+
+function selectTakDay(day) { takDay = day; renderTakvim(); }
+
+function showTakDay(day) {
+  const shoots = cekimler.filter(c => {
+    const d = toDate(c.tarih);
+    return d && d.getFullYear()===takY && d.getMonth()===takM && d.getDate()===day;
+  });
+  const el = document.getElementById('tak-detail');
+  if (!shoots.length) { el.innerHTML = '<p class="text-slate-600 text-sm text-center py-4">Bu gün çekim yok</p>'; return; }
+  el.innerHTML = `<p class="text-xs font-semibold text-slate-500 mb-2">${day} ${MONTHS[takM]} — ${shoots.length} çekim</p>` +
+    shoots.map(c => `
+    <div class="card card-tap overflow-hidden mb-2" onclick="editCekim('${c.id}')">
+      <div class="p-4">
+        <div class="flex items-start justify-between mb-1">
+          <p class="font-semibold text-slate-100">${c.musteri||'—'}</p>
+          <span class="text-xs px-2.5 py-1 rounded-full font-medium badge-${c.odeme_durumu||'bekliyor'}">${SL[c.odeme_durumu]||'—'}</span>
+        </div>
+        <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500">
+          ${c.saat?`<span>🕐 ${c.saat}</span>`:''}
+          ${c.lokasyon?`<span>📍 ${c.lokasyon}</span>`:''}
+          ${c.kimler?`<span>👤 ${KIM[c.kimler]||c.kimler}</span>`:''}
+        </div>
+        <p class="text-base font-bold text-slate-100 mt-2">${tl(c.ucret)}</p>
+      </div>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────
+//  FİNANS
+// ─────────────────────────────────────
+function shiftMonth(d) {
+  finM += d;
+  if (finM > 11) { finM=0; finY++; }
+  if (finM <  0) { finM=11; finY--; }
+  renderFinans();
+}
+function setFinansFilter(f, btn) {
+  finansFilter = f;
+  document.querySelectorAll('#fin-segs .seg').forEach(b => { b.classList.remove('seg-on'); b.classList.add('seg-off'); });
+  btn.classList.replace('seg-off','seg-on');
+  renderFinans();
+}
+function renderFinans() {
+  document.getElementById('fin-month').textContent = `${MONTHS[finM]} ${finY}`;
+  const md  = finans.filter(f => { const d=toDate(f.tarih); return d&&d.getFullYear()===finY&&d.getMonth()===finM; });
+  const gel = md.filter(f=>f.tip==='gelir').reduce((a,f)=>a+(f.tutar||0),0);
+  const gid = md.filter(f=>f.tip==='gider').reduce((a,f)=>a+(f.tutar||0),0);
+  document.getElementById('fin-gelir').textContent = tl(gel);
+  document.getElementById('fin-gider').textContent = tl(gid);
+  document.getElementById('fin-net').textContent   = tl(gel-gid);
+  const data = finansFilter==='hepsi' ? md : md.filter(f=>f.tip===finansFilter);
+  const el   = document.getElementById('finans-list');
+  if (!data.length) {
+    el.innerHTML = `<div class="empty"><svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p class="text-sm mt-2 text-slate-600">Bu ay kayıt yok</p></div>`; return;
+  }
+  el.innerHTML = data.map(f => `
+    <div class="card card-tap p-3 flex items-center gap-3" onclick="editFinans('${f.id}')">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${f.tip==='gelir'?'rgba(6,78,59,.25)':'rgba(127,29,29,.25)'}">
+        <svg class="w-5 h-5" style="color:${f.tip==='gelir'?'#34d399':'#f87171'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          ${f.tip==='gelir'?'<path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/>':'<path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>'}
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-slate-200 truncate">${f.aciklama||'—'}</p>
+        <p class="text-xs text-slate-500">${f.kategori||'—'} · ${fmtShort(f.tarih)}</p>
+      </div>
+      <div class="text-right">
+        <p class="font-bold text-sm" style="color:${f.tip==='gelir'?'#34d399':'#f87171'}">${tl(f.tutar)}</p>
+        <button onclick="event.stopPropagation();askDel('gelir_gider','${f.id}','bu kaydı')"
+          class="mt-0.5 p-0.5 text-slate-600">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+function editFinans(id) { editId=id; openFinansForm(finans.find(f=>f.id===id)); }
+function openFinansForm(data) {
+  const isEdit = !!data, tip = data?.tip||'gelir';
+  document.getElementById('modal-title').textContent = isEdit ? 'Kaydı Düzenle' : 'Yeni Kayıt';
+  document.getElementById('modal-body').innerHTML = `
+    <form onsubmit="saveFinans(event)" class="space-y-4 pb-4">
+      <div class="flex gap-3">
+        <label class="rcard"><input type="radio" name="tip" value="gelir" ${tip==='gelir'?'checked':''} onchange="updateFinKats()">
+          <div class="rcard-inner"><p class="text-xl">📈</p><p class="text-sm font-semibold text-slate-300 mt-1">Gelir</p></div></label>
+        <label class="rcard"><input type="radio" name="tip" value="gider" ${tip==='gider'?'checked':''} onchange="updateFinKats()">
+          <div class="rcard-inner"><p class="text-xl">📉</p><p class="text-sm font-semibold text-slate-300 mt-1">Gider</p></div></label>
+      </div>
+      <div><label class="lbl">Kategori</label>
+        <select name="kategori" id="fin-kat" class="inp">
+          ${(tip==='gelir'?GKATS:GIKATS).map(k=>`<option value="${k}" ${data?.kategori===k?'selected':''}>${k}</option>`).join('')}
+        </select></div>
+      <div><label class="lbl">Tutar (₺) *</label>
+        <input name="tutar" type="number" min="0" class="inp" required placeholder="0" value="${data?.tutar||''}"></div>
+      <div><label class="lbl">Açıklama</label>
+        <input name="aciklama" class="inp" placeholder="Örn: Ahmet Bey düğün çekimi" value="${esc(data?.aciklama||'')}"></div>
+      <div><label class="lbl">Tarih *</label>
+        <input name="tarih" type="date" class="inp" required value="${data?isoVal(data.tarih):today()}"></div>
+      <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
+    </form>`;
+  openModal();
+}
+function updateFinKats() {
+  const tip = document.querySelector('[name="tip"]:checked')?.value||'gelir';
+  const sel = document.getElementById('fin-kat');
+  if (sel) sel.innerHTML = (tip==='gelir'?GKATS:GIKATS).map(k=>`<option value="${k}">${k}</option>`).join('');
+}
+async function saveFinans(e) {
+  e.preventDefault(); const f=e.target;
+  await doSave('gelir_gider',{ tip:f.tip.value, kategori:f.kategori.value, tutar:parseFloat(f.tutar.value)||0, aciklama:f.aciklama.value.trim(), tarih:firebase.firestore.Timestamp.fromDate(new Date(f.tarih.value)) },e);
+}
+
+// ─────────────────────────────────────
+//  MÜŞTERİLER
+// ─────────────────────────────────────
+function setMusteriTab(tab, btn) {
+  curMusTab = tab;
+  document.querySelectorAll('#mus-segs .seg').forEach(b => { b.classList.remove('seg-on'); b.classList.add('seg-off'); });
+  btn.classList.replace('seg-off','seg-on');
+  ['musteriler','kurgular','paketler'].forEach(t => document.getElementById('mt-'+t).classList.toggle('hidden', t!==tab));
+}
+function renderMusteriler() {
+  const el = document.getElementById('mus-list');
+  if (!musteriler.length) { el.innerHTML = `<div class="empty"><svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><p class="text-sm mt-2 text-slate-600">Henüz müşteri yok</p></div>`; return; }
+  el.innerHTML = musteriler.map(m => {
+    const isSabit = m.tip === 'sabit';
+    const ods     = musOds(m);
+    const ODCOL   = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
+    return `<div class="card card-tap p-4" onclick="openMusteriActions('${m.id}')">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,58,237,.15)">
+          <span class="font-bold text-sm" style="color:#a78bfa">${(m.isim||'?')[0].toUpperCase()}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-slate-100">${m.isim||'—'}</p>
+          <p class="text-xs text-slate-500">${m.telefon||''}${m.tip?' · '+(isSabit?'Sabit':'Anlık'):''}</p>
+        </div>
+        ${isSabit && m.ucret ? `<div class="text-right shrink-0">
+          <p class="text-sm font-bold text-slate-200">${tl(m.ucret)}</p>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>
+        </div>` : `<svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+function editMusteri(id) { editId=id; openMusteriForm(musteriler.find(m=>m.id===id)); }
+
+function openMusteriActions(id) {
+  const m = musteriler.find(x => x.id===id);
+  if (!m) return;
+  const isSabit = m.tip === 'sabit';
+  const ods     = musOds(m);
+  const odenen  = musOdenen(m);
+  const ODCOL   = { bekliyor:'badge-bekliyor', kismi:'badge-kismi', odendi:'badge-odendi' };
+  const ucretLabel = m.ucret ? ` — ${tl(m.ucret)}` : '';
+  const ayLabel = `${MONTHS[musM]} ${musY}`;
+  document.getElementById('modal-title').textContent = m.isim;
+  document.getElementById('modal-body').innerHTML = `<div class="space-y-3 pb-4">
+    <p class="text-xs text-center text-slate-500 font-medium">${ayLabel}</p>
+    ${m.ucret ? `<div class="rounded-xl p-3 space-y-2" style="background:#0f1729;border:1px solid #1e2d42">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-slate-500">${isSabit ? 'Sabit Ücret' : 'Çekim Ücreti'}</p>
+        <div class="text-right">
+          <p class="font-bold text-slate-200">${tl(m.ucret)}</p>
+          ${isSabit ? `<span class="text-xs px-2 py-0.5 rounded-full font-medium ${ODCOL[ods]}">${ODLBL[ods]}</span>` : ''}
+        </div>
+      </div>
+      ${isSabit && ods==='kismi' && odenen ? `<div class="pt-2 space-y-1" style="border-top:1px solid #1e2d42">
+        <div class="flex justify-between text-xs"><span class="text-emerald-400 font-medium">Alınan</span><span class="font-bold text-emerald-300">${tl(odenen)}</span></div>
+        <div class="flex justify-between text-xs"><span class="text-amber-400 font-medium">Kalan</span><span class="font-bold text-amber-300">${tl(m.ucret-odenen)}</span></div>
+      </div>` : ''}
+    </div>` : ''}
+    ${isSabit ? `
+      <button class="btn-p" onclick="setMusteriOdeme('${id}','odendi');closeModal()">✅ Ödeme Alındı${ucretLabel}</button>
+      <button class="w-full py-3 rounded-xl font-semibold text-sm" style="border:2px solid rgba(30,58,138,.5);color:#93c5fd;background:transparent" onclick="openKismiOdemeForm('${id}')">💰 Kısmi Ödeme Alındı</button>
+      ${ods!=='bekliyor'?`<button class="w-full py-3 rounded-xl font-medium text-sm" style="border:2px solid #1e2d42;color:#94a3b8;background:transparent" onclick="setMusteriOdeme('${id}','bekliyor');closeModal()">🔄 Yeniden Bekliyor'a Al</button>`:''}
+    ` : `
+      <button class="btn-p" onclick="closeModal();editId=null;openCekimForm({musteri:'${esc(m.isim)}',telefon:'${esc(m.telefon||'')}',ucret:${m.ucret||''}})">📷 Çekim Ekle${ucretLabel}</button>
+    `}
+    <button class="w-full py-3 rounded-xl font-medium text-sm" style="border:2px solid #1e2d42;color:#94a3b8;background:transparent" onclick="closeModal();editMusteri('${id}')">✏️ Düzenle</button>
+    <button class="btn-d" onclick="askDel('musteriler','${id}','${esc(m.isim)} müşterisini');closeModal()">🗑 Sil</button>
+  </div>`;
+  openModal();
+}
+
+async function setMusteriOdeme(id, durum) {
+  const key = mKey(musY, musM);
+  try { await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum }); }
+  catch(e) { alert('Hata: '+e.message); }
+}
+
+function openKismiOdemeForm(id) {
+  const m = musteriler.find(x => x.id===id);
+  if (!m) return;
+  const ucret  = m.ucret || 0;
+  const odenen = musOdenen(m);
+  document.getElementById('modal-title').textContent = m.isim;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="space-y-4 pb-4">
+      <p class="text-xs text-center text-slate-500 font-medium">${MONTHS[musM]} ${musY}</p>
+      <div class="rounded-xl p-3 flex items-center justify-between" style="background:#0f1729;border:1px solid #1e2d42">
+        <p class="text-sm text-slate-500">Toplam Ücret</p>
+        <p class="font-bold text-slate-200">${tl(ucret)}</p>
+      </div>
+      <div>
+        <label class="lbl">Alınan Miktar (₺)</label>
+        <input id="kismi-inp" type="number" min="0" max="${ucret}" class="inp text-lg font-bold"
+          placeholder="0" value="${odenen||''}"
+          oninput="updateKismiKalan(${ucret})">
+      </div>
+      <div id="kismi-kalan-row" class="rounded-xl p-3 flex items-center justify-between" style="background:#0f1729;border:1px solid #1e2d42">
+        <p class="text-sm text-slate-500" id="kismi-kalan-lbl">Kalan</p>
+        <p class="font-bold text-slate-400" id="kismi-kalan-val">${tl(ucret-odenen)}</p>
+      </div>
+      <button class="btn-p" onclick="saveKismiOdeme('${id}',${ucret})">Kaydet</button>
+      <button class="w-full py-3 rounded-xl font-medium text-sm" style="border:2px solid #1e2d42;color:#64748b;background:transparent" onclick="openMusteriActions('${id}')">← Geri</button>
+    </div>`;
+}
+
+function updateKismiKalan(ucret) {
+  const val = parseFloat(document.getElementById('kismi-inp').value) || 0;
+  const kalan = Math.max(0, ucret - val);
+  document.getElementById('kismi-kalan-val').textContent = tl(kalan);
+  const row = document.getElementById('kismi-kalan-row');
+  const lbl = document.getElementById('kismi-kalan-lbl');
+  if (kalan > 0) {
+    row.style.background = 'rgba(120,53,15,.15)';
+    row.style.borderColor = 'rgba(146,64,14,.3)';
+    lbl.style.color = '#f59e0b';
+    document.getElementById('kismi-kalan-val').style.color = '#fbbf24';
+  } else {
+    row.style.background = 'rgba(6,78,59,.15)';
+    row.style.borderColor = 'rgba(22,101,52,.3)';
+    lbl.style.color = '#34d399';
+    document.getElementById('kismi-kalan-val').style.color = '#4ade80';
+  }
+}
+
+async function saveKismiOdeme(id, ucret) {
+  const val   = parseFloat(document.getElementById('kismi-inp').value) || 0;
+  const durum = val >= ucret ? 'odendi' : 'kismi';
+  const key   = mKey(musY, musM);
+  try {
+    await db.collection('musteriler').doc(id).update({
+      [`odeme_gecmisi.${key}.durum`]:  durum,
+      [`odeme_gecmisi.${key}.odenen`]: val
+    });
+    closeModal();
+  } catch(e) { alert('Hata: '+e.message); }
+}
+function openMusteriForm(data) {
+  const isEdit=!!data;
+  document.getElementById('modal-title').textContent = isEdit?'Müşteriyi Düzenle':'Yeni Müşteri';
+  document.getElementById('modal-body').innerHTML = `
+    <form onsubmit="saveMusteri(event)" class="space-y-4 pb-4">
+      <div><label class="lbl">İsim *</label><input name="isim" class="inp" required placeholder="Ahmet Yılmaz" value="${esc(data?.isim||'')}"></div>
+      <div><label class="lbl">Telefon</label><input name="telefon" type="tel" class="inp" placeholder="05xx xxx xxxx" value="${esc(data?.telefon||'')}"></div>
+      <div><label class="lbl">Ücret (₺)</label><input name="ucret" type="number" min="0" class="inp" placeholder="0" value="${data?.ucret||''}"></div>
+      <div><label class="lbl">Müşteri Tipi</label>
+        <select name="tip" class="inp">
+          <option value="anlik" ${(data?.tip||'anlik')==='anlik'?'selected':''}>Anlık</option>
+          <option value="sabit" ${data?.tip==='sabit'?'selected':''}>Sabit</option>
+        </select></div>
+      <div><label class="lbl">Notlar</label><textarea name="notlar" class="inp resize-none" rows="2">${data?.notlar||''}</textarea></div>
+      ${isEdit?`<button type="button" class="btn-d" onclick="askDel('musteriler','${data.id}','${esc(data.isim)} müşterisini');closeModal()">Müşteriyi Sil</button>`:''}
+      <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
+    </form>`;
+  openModal();
+}
+async function saveMusteri(e) {
+  e.preventDefault(); const f=e.target;
+  const doc = { isim:f.isim.value.trim(), telefon:f.telefon.value.trim(), tip:f.tip.value, ucret:parseFloat(f.ucret.value)||0, notlar:f.notlar.value.trim() };
+  if (!editId && f.tip.value==='sabit') doc.odeme_durumu = 'bekliyor';
+  await doSave('musteriler', doc, e);
+}
+
+// ─────────────────────────────────────
+//  KURGULAR
+// ─────────────────────────────────────
+function renderKurgular() {
+  const el = document.getElementById('kur-list');
+  if (!kurgular.length) { el.innerHTML = `<div class="empty"><svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg><p class="text-sm mt-2 text-slate-600">Henüz kurgu yok</p></div>`; return; }
+  el.innerHTML = kurgular.map(k => `
+    <div class="card card-tap p-4" onclick="editKurgu('${k.id}')">
+      <div class="flex items-start justify-between mb-1">
+        <p class="font-semibold text-slate-100">${k.musteri||'—'}</p>
+        <span class="text-xs px-2.5 py-1 rounded-full font-medium badge-${k.durum||'bekliyor'}">${KL[k.durum]||'—'}</span>
+      </div>
+      ${k.aciklama?`<p class="text-xs text-slate-500 mb-2">${k.aciklama}</p>`:''}
+      <div class="flex items-center justify-between mt-2 pt-2" style="border-top:1px solid #1e2d42">
+        <p class="text-xs text-slate-500">${fmtDate(k.tarih)}</p>
+        <p class="font-bold text-slate-200">${tl(k.ucret)}</p>
+      </div>
+    </div>`).join('');
+}
+function editKurgu(id) { editId=id; openKurguForm(kurgular.find(k=>k.id===id)); }
+function openKurguForm(data) {
+  const isEdit=!!data;
+  document.getElementById('modal-title').textContent = isEdit?'Kurguyu Düzenle':'Yeni Kurgu';
+  const KURG_MUSTERI = ['GMN Dijital', 'Doktorlardan — Gonca Soyuduran'];
+  document.getElementById('modal-body').innerHTML = `
+    <form onsubmit="saveKurgu(event)" class="space-y-4 pb-4">
+      <div>
+        <label class="lbl">Hızlı Seç</label>
+        <div id="kur-chips" class="flex gap-2 flex-wrap">
+          ${KURG_MUSTERI.map(n=>`<button type="button" class="chip ${data?.musteri===n?'chip-on':'chip-off'}" onclick="pickKurguMusteri(this,'${esc(n)}')">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div><label class="lbl">Müşteri / Proje *</label><input id="kurgu-musteri" name="musteri" class="inp" required placeholder="Ahmet Yılmaz — Düğün" value="${esc(data?.musteri||'')}"></div>
+      <div><label class="lbl">Açıklama</label><input name="aciklama" class="inp" placeholder="Kısa açıklama" value="${esc(data?.aciklama||'')}"></div>
+      <div>
+        <label class="lbl">Ücret (₺)</label>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="stepKurguUcret(-750)"
+            class="w-12 h-12 rounded-xl text-2xl font-bold flex items-center justify-center shrink-0" style="border:2px solid #1e2d42;color:#94a3b8;background:#0b0f1a">−</button>
+          <input name="ucret" id="kurgu-ucret" type="number" min="0" class="inp flex-1 text-center font-bold text-lg" placeholder="750" value="${data?.ucret!=null?data.ucret:750}">
+          <button type="button" onclick="stepKurguUcret(750)"
+            class="w-12 h-12 rounded-xl text-2xl font-bold flex items-center justify-center shrink-0" style="border:2px solid rgba(124,58,237,.4);color:#a78bfa;background:rgba(124,58,237,.1)">+</button>
+        </div>
+      </div>
+      <div><label class="lbl">Durum</label>
+        <select name="durum" class="inp">
+          <option value="bekliyor"   ${(data?.durum||'bekliyor')==='bekliyor'?'selected':''}>Bekliyor</option>
+          <option value="devam"      ${data?.durum==='devam'?'selected':''}>Devam Ediyor</option>
+          <option value="tamamlandi" ${data?.durum==='tamamlandi'?'selected':''}>Tamamlandı</option>
+        </select>
+      </div>
+      <div><label class="lbl">Tarih</label><input name="tarih" type="date" class="inp" value="${data?isoVal(data.tarih):today()}"></div>
+      ${isEdit?`<button type="button" class="btn-d" onclick="askDel('kurgular','${data.id}','bu kurguyu');closeModal()">Kurguyu Sil</button>`:''}
+      <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
+    </form>`;
+  openModal();
+}
+function pickKurguMusteri(btn, val) {
+  document.querySelectorAll('#kur-chips .chip').forEach(b => { b.classList.replace('chip-on','chip-off'); });
+  btn.classList.replace('chip-off','chip-on');
+  document.getElementById('kurgu-musteri').value = val;
+}
+function stepKurguUcret(delta) {
+  const inp = document.getElementById('kurgu-ucret');
+  inp.value = Math.max(0, (parseFloat(inp.value)||0) + delta);
+}
+async function saveKurgu(e) {
+  e.preventDefault(); const f=e.target;
+  await doSave('kurgular',{musteri:f.musteri.value.trim(),aciklama:f.aciklama.value.trim(),ucret:parseFloat(f.ucret.value)||0,durum:f.durum.value,tarih:f.tarih.value?firebase.firestore.Timestamp.fromDate(new Date(f.tarih.value)):null},e);
+}
+
+// ─────────────────────────────────────
+//  PAKETLER
+// ─────────────────────────────────────
+function renderPaketler() {
+  const el = document.getElementById('pak-list');
+  if (!paketler.length) {
+    el.innerHTML = `<div class="empty">
+      <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+      <p class="text-sm mt-2 text-slate-600">Henüz paket yok</p>
+      <p class="text-xs mt-1 text-slate-700">+ butonuna basarak ekleyin</p>
+    </div>`; return;
+  }
+  el.innerHTML = paketler.map(p => `
+    <div class="card card-tap p-4" onclick="editPaket('${p.id}')">
+      <div class="flex items-start justify-between mb-1">
+        <p class="font-semibold text-slate-100">${p.isim||'—'}</p>
+        <p class="font-bold" style="color:#a78bfa">${tl(p.fiyat)}</p>
+      </div>
+      ${p.aciklama?`<p class="text-xs text-slate-400 mb-1">${p.aciklama}</p>`:''}
+      ${p.icerik?`<p class="text-xs text-slate-500 mt-1 leading-relaxed">${p.icerik}</p>`:''}
+    </div>`).join('');
+}
+function editPaket(id) { editId=id; openPaketForm(paketler.find(p=>p.id===id)); }
+function openPaketForm(data) {
+  const isEdit=!!data;
+  document.getElementById('modal-title').textContent = isEdit?'Paketi Düzenle':'Yeni Paket';
+  document.getElementById('modal-body').innerHTML = `
+    <form onsubmit="savePaket(event)" class="space-y-4 pb-4">
+      <div><label class="lbl">Paket Adı *</label>
+        <input name="isim" class="inp" required placeholder="Düğün Paketi" value="${esc(data?.isim||'')}"></div>
+      <div><label class="lbl">Fiyat (₺) *</label>
+        <input name="fiyat" type="number" min="0" class="inp" required placeholder="15000" value="${data?.fiyat||''}"></div>
+      <div><label class="lbl">Kısa Açıklama</label>
+        <input name="aciklama" class="inp" placeholder="Nişan + Düğün full day" value="${esc(data?.aciklama||'')}"></div>
+      <div><label class="lbl">Paket İçeriği</label>
+        <textarea name="icerik" class="inp resize-none" rows="4" placeholder="• 8 saat çekim&#10;• 2 kameralı&#10;• Drone çekimi&#10;• Kurgu dahil">${data?.icerik||''}</textarea></div>
+      ${isEdit?`<button type="button" class="btn-d" onclick="askDel('paketler','${data.id}','${esc(data.isim)} paketini');closeModal()">Paketi Sil</button>`:''}
+      <button type="submit" class="btn-p">${isEdit?'Güncelle':'Kaydet'}</button>
+    </form>`;
+  openModal();
+}
+async function savePaket(e) {
+  e.preventDefault(); const f=e.target;
+  await doSave('paketler',{isim:f.isim.value.trim(),fiyat:parseFloat(f.fiyat.value)||0,aciklama:f.aciklama.value.trim(),icerik:f.icerik.value.trim()},e);
+}
+
+// ─────────────────────────────────────
+//  GENERIC SAVE
+// ─────────────────────────────────────
+async function doSave(col, doc, e) {
+  const btn = e?.target?.querySelector('button[type="submit"]');
+  if (btn) { btn.disabled=true; btn.textContent='Kaydediliyor…'; }
+  try {
+    if (editId) await db.collection(col).doc(editId).update(doc);
+    else { doc.olusturma_tarihi=firebase.firestore.FieldValue.serverTimestamp(); await db.collection(col).add(doc); }
+    closeModal();
+  } catch(err) {
+    alert('Hata: '+err.message);
+    if (btn) { btn.disabled=false; btn.textContent='Kaydet'; }
+  }
+}
+
+// ─────────────────────────────────────
+//  MODAL / DELETE
+// ─────────────────────────────────────
+function openModal()    { document.getElementById('modal').classList.remove('hidden'); }
+function closeModal()   { document.getElementById('modal').classList.add('hidden'); editId=null; }
+function maybeClose(e)  { if (e.target===document.getElementById('modal')) closeModal(); }
+function askDel(col,id,label) { delCol=col; delId=id; document.getElementById('del-msg').textContent=`"${label}" kalıcı olarak silinecek.`; document.getElementById('del-modal').classList.remove('hidden'); }
+function closeDel()     { document.getElementById('del-modal').classList.add('hidden'); delCol=null; delId=null; }
+async function doDelete() {
+  if (!delCol||!delId) return;
+  try { await db.collection(delCol).doc(delId).delete(); closeDel(); }
+  catch(err) { alert('Hata: '+err.message); }
+}
+
+// ─────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────
+window.addEventListener('load', async () => {
+  const ok = initFirebase();
+  if (!ok) return;
+  const now = new Date();
+  cekY=now.getFullYear(); cekM=now.getMonth();
+  finY=now.getFullYear(); finM=now.getMonth();
+  takY=now.getFullYear(); takM=now.getMonth();
+  musY=now.getFullYear(); musM=now.getMonth();
+  document.getElementById('mus-month').textContent = `${MONTHS[musM]} ${musY}`;
+  await new Promise(r => setTimeout(r,500));
+  hide('loading-screen'); show('app');
+  listen(); goTo('dashboard');
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+});
+</script>
+</body>
+</html>
