@@ -216,6 +216,18 @@
         </div>
         <div id="d-yas-list"></div>
       </div>
+
+      <!-- KÜLTÜR YOLU DASHBOARD KARTI -->
+      <div class="card overflow-hidden">
+        <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid #1e2d42">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4" style="color:#7c3aed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <p class="text-sm font-semibold text-slate-200">Kültür Yolu</p>
+          </div>
+          <p class="text-sm font-black" style="color:#7c3aed" id="ky-dash-toplam"></p>
+        </div>
+        <div id="ky-dash-list"></div>
+      </div>
     </section>
 
     <!-- ÇEKİMLER -->
@@ -534,6 +546,7 @@ function listen() {
   db.collection('cemal_kultur_yolu').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     kulturYolu = s.docs.map(d => ({id:d.id,...d.data()}));
     renderKulturYolu();
+    renderKulturYoluDash();
   });
 }
 
@@ -1256,6 +1269,84 @@ function renderKulturYolu() {
     </div>`;
   }).join('');
   el.innerHTML = html;
+}
+
+// ─────────────────────────────────────
+//  KÜLTÜR YOLU — DASHBOARD WİDGETI
+// ─────────────────────────────────────
+function renderKulturYoluDash() {
+  const el = document.getElementById('ky-dash-list');
+  if (!el) return;
+  const SEHIRLER = ['Aydın','Mersin','Eskişehir'];
+  const toplamGelir = kulturYolu.reduce((a,k) => a+((k.gun_sayisi||0)*(k.gunluk_ucret||0)), 0);
+  const toplamEl = document.getElementById('ky-dash-toplam');
+  if (toplamEl) toplamEl.textContent = toplamGelir > 0 ? tl(toplamGelir) : '';
+
+  el.innerHTML = SEHIRLER.map(sehir => {
+    const k = kulturYolu.find(x => x.sehir === sehir);
+    if (!k) {
+      return `<div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid #1a2535">
+        <div>
+          <p class="font-semibold text-slate-300">${sehir}</p>
+          <p class="text-xs text-slate-500 mt-0.5">Henüz kayıt eklenmedi</p>
+        </div>
+        <button onclick="initKySehir('${sehir}')"
+          style="background:#1e1040;color:#7c3aed;border:1px solid #3b1f7a"
+          class="text-xs font-semibold px-3 py-1.5 rounded-xl active:opacity-80">+ Ekle</button>
+      </div>`;
+    }
+    const toplam = (k.gun_sayisi||0) * (k.gunluk_ucret||0);
+    return `<div class="px-4 py-3" style="border-bottom:1px solid #1a2535">
+      <div class="flex items-center justify-between mb-2.5">
+        <div>
+          <p class="font-bold text-slate-200">${sehir}</p>
+          <p class="text-xs text-slate-500 mt-0.5">Toplam: <span class="font-semibold" style="color:#7c3aed">${toplam>0?tl(toplam):'—'}</span></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="updateGunSayisi('${k.id}',-1)"
+            class="w-9 h-9 rounded-xl text-lg font-bold flex items-center justify-center active:opacity-80 text-slate-400"
+            style="border:2px solid #1e2d42;background:#131c2e">−</button>
+          <div class="text-center" style="min-width:2.2rem">
+            <p class="text-xl font-black text-slate-100 leading-none">${k.gun_sayisi||0}</p>
+            <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">gün</p>
+          </div>
+          <button onclick="updateGunSayisi('${k.id}',1)"
+            class="w-9 h-9 rounded-xl text-lg font-bold flex items-center justify-center active:opacity-80"
+            style="border:2px solid #3b1f7a;color:#7c3aed;background:#1e1040">+</button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-500 shrink-0">Günlük ₺</span>
+        <input type="number" min="0" placeholder="Ücret girin…"
+          class="flex-1 py-1.5 text-sm font-semibold rounded-xl px-3 outline-none"
+          style="background:#1e2d42;border:1px solid #2a3f5a;color:#e2e8f0"
+          value="${k.gunluk_ucret||''}"
+          onchange="updateKyUcret('${k.id}',this.value)"
+          onclick="event.stopPropagation()">
+        <button onclick="editKulturYolu('${k.id}')"
+          class="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center active:opacity-80"
+          style="border:1px solid #1e2d42;background:#131c2e">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function initKySehir(sehir) {
+  try {
+    await db.collection('cemal_kultur_yolu').add({
+      sehir, gunluk_ucret: 0, gun_sayisi: 0,
+      durum: 'bekliyor', notlar: '',
+      olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { alert('Hata: '+e.message); }
+}
+
+async function updateKyUcret(id, val) {
+  try {
+    await db.collection('cemal_kultur_yolu').doc(id).update({ gunluk_ucret: parseFloat(val)||0 });
+  } catch(e) { alert('Hata: '+e.message); }
 }
 
 function editKulturYolu(id) { editId=id; openKulturYoluForm(kulturYolu.find(k=>k.id===id)); }
