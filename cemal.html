@@ -224,7 +224,12 @@
             <svg class="w-4 h-4" style="color:#7c3aed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             <p class="text-sm font-semibold text-slate-200">Kültür Yolu</p>
           </div>
-          <p class="text-sm font-black" style="color:#7c3aed" id="ky-dash-toplam"></p>
+          <div class="flex items-center gap-2">
+            <p class="text-sm font-black" style="color:#7c3aed" id="ky-dash-toplam"></p>
+            <button onclick="openKulturYoluForm(null)"
+              class="w-8 h-8 rounded-xl text-white text-xl font-bold flex items-center justify-center active:opacity-80 shadow-sm"
+              style="background:#7c3aed">+</button>
+          </div>
         </div>
         <div id="ky-dash-list"></div>
       </div>
@@ -1282,27 +1287,52 @@ function renderKulturYoluDash() {
   const toplamEl = document.getElementById('ky-dash-toplam');
   if (toplamEl) toplamEl.textContent = toplamGelir > 0 ? tl(toplamGelir) : '';
 
-  el.innerHTML = SEHIRLER.map(sehir => {
-    const k = kulturYolu.find(x => x.sehir === sehir);
-    if (!k) {
+  const extraRows = kulturYolu.filter(k => !SEHIRLER.includes(k.sehir));
+  const allRows = [
+    ...SEHIRLER.map(s => kulturYolu.find(x => x.sehir === s) || {_placeholder: s}),
+    ...extraRows
+  ];
+
+  if (!kulturYolu.length) {
+    el.innerHTML = `<div class="px-4 py-5 text-center">
+      <p class="text-sm text-slate-500">Henüz kayıt yok</p>
+      <p class="text-xs text-slate-600 mt-1">+ butonuna basarak şehir ekleyin</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = allRows.map(k => {
+    if (k._placeholder) {
       return `<div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid #1a2535">
         <div>
-          <p class="font-semibold text-slate-300">${sehir}</p>
-          <p class="text-xs text-slate-500 mt-0.5">Henüz kayıt eklenmedi</p>
+          <p class="font-semibold text-slate-400">${k._placeholder}</p>
+          <p class="text-xs text-slate-600 mt-0.5">Kayıt eklenmedi</p>
         </div>
-        <button onclick="initKySehir('${sehir}')"
+        <button onclick="initKySehir('${k._placeholder}')"
           style="background:#1e1040;color:#7c3aed;border:1px solid #3b1f7a"
           class="text-xs font-semibold px-3 py-1.5 rounded-xl active:opacity-80">+ Ekle</button>
       </div>`;
     }
+
     const toplam = (k.gun_sayisi||0) * (k.gunluk_ucret||0);
+    const durum  = k.durum || 'bekliyor';
+    const durumLabel = {'bekliyor':'Ödenmedi','kismi':'Kısmi','odendi':'Ödendi'}[durum] || 'Ödenmedi';
+    const durumStyle = durum==='odendi'
+      ? 'background:#14532d;color:#4ade80'
+      : durum==='kismi'
+      ? 'background:#713f12;color:#fde047'
+      : 'background:#450a0a;color:#f87171';
+
     return `<div class="px-4 py-3" style="border-bottom:1px solid #1a2535">
+      <!-- Satır 1: Şehir + Ödeme durumu + Gün kontrolü -->
       <div class="flex items-center justify-between mb-2.5">
-        <div>
-          <p class="font-bold text-slate-200">${sehir}</p>
-          <p class="text-xs text-slate-500 mt-0.5">Toplam: <span class="font-semibold" style="color:#7c3aed">${toplam>0?tl(toplam):'—'}</span></p>
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <p class="font-bold text-slate-200 truncate">${k.sehir||'—'}</p>
+          <button onclick="toggleKyDurum('${k.id}','${durum}')"
+            class="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full active:opacity-70"
+            style="${durumStyle}">${durumLabel}</button>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 shrink-0 ml-2">
           <button onclick="updateGunSayisi('${k.id}',-1)"
             class="w-9 h-9 rounded-xl text-lg font-bold flex items-center justify-center active:opacity-80 text-slate-400"
             style="border:2px solid #1e2d42;background:#131c2e">−</button>
@@ -1315,6 +1345,7 @@ function renderKulturYoluDash() {
             style="border:2px solid #3b1f7a;color:#7c3aed;background:#1e1040">+</button>
         </div>
       </div>
+      <!-- Satır 2: Günlük ücret + Toplam + Düzenle -->
       <div class="flex items-center gap-2">
         <span class="text-xs text-slate-500 shrink-0">Günlük ₺</span>
         <input type="number" min="0" placeholder="Ücret girin…"
@@ -1323,6 +1354,7 @@ function renderKulturYoluDash() {
           value="${k.gunluk_ucret||''}"
           onchange="updateKyUcret('${k.id}',this.value)"
           onclick="event.stopPropagation()">
+        <span class="text-xs font-black shrink-0" style="color:#7c3aed;min-width:4rem;text-align:right">${toplam>0?tl(toplam):'—'}</span>
         <button onclick="editKulturYolu('${k.id}')"
           class="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center active:opacity-80"
           style="border:1px solid #1e2d42;background:#131c2e">
@@ -1331,6 +1363,13 @@ function renderKulturYoluDash() {
       </div>
     </div>`;
   }).join('');
+}
+
+async function toggleKyDurum(id, mevcutDurum) {
+  const sira = ['bekliyor','kismi','odendi'];
+  const yeni = sira[(sira.indexOf(mevcutDurum) + 1) % sira.length];
+  try { await db.collection('cemal_kultur_yolu').doc(id).update({durum: yeni}); }
+  catch(e) { alert('Hata: '+e.message); }
 }
 
 async function initKySehir(sehir) {
