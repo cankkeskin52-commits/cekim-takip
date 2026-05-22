@@ -27,6 +27,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Kültür Yolu koleksiyonu
+    match /kultur_yolu/{docId} {
+      allow read, write: if true;
+    }
+
     // Diğer her şeyi engelle
     match /{document=**} {
       allow read, write: if false;
