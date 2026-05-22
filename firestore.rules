@@ -32,6 +32,31 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Steadicam (Cemal) koleksiyonları
+    match /cemal_cekimler/{docId} {
+      allow read, write: if true;
+    }
+
+    match /cemal_gelir_gider/{docId} {
+      allow read, write: if true;
+    }
+
+    match /cemal_musteriler/{docId} {
+      allow read, write: if true;
+    }
+
+    match /cemal_kurgular/{docId} {
+      allow read, write: if true;
+    }
+
+    match /cemal_paketler/{docId} {
+      allow read, write: if true;
+    }
+
+    match /cemal_kultur_yolu/{docId} {
+      allow read, write: if true;
+    }
+
     // Diğer her şeyi engelle
     match /{document=**} {
       allow read, write: if false;

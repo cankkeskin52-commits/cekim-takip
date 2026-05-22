@@ -511,27 +511,27 @@ const GIKATS = ['Ekipman','Ulaşım','Kira','Yazılım','Pazarlama','Personel','
 //  LISTENERS
 // ─────────────────────────────────────
 function listen() {
-  db.collection('cekimler').orderBy('tarih','desc').onSnapshot(s => {
+  db.collection('cemal_cekimler').orderBy('tarih','desc').onSnapshot(s => {
     cekimler = s.docs.map(d => ({id:d.id,...d.data()}));
     renderCekimler(); renderDash(); if(curTab==='takvim') renderTakvim();
   });
-  db.collection('gelir_gider').orderBy('tarih','desc').onSnapshot(s => {
+  db.collection('cemal_gelir_gider').orderBy('tarih','desc').onSnapshot(s => {
     finans = s.docs.map(d => ({id:d.id,...d.data()}));
     renderFinans(); renderDash();
   });
-  db.collection('musteriler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
+  db.collection('cemal_musteriler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     musteriler = s.docs.map(d => ({id:d.id,...d.data()}));
     renderMusteriler(); renderDash();
   });
-  db.collection('kurgular').orderBy('tarih','desc').onSnapshot(s => {
+  db.collection('cemal_kurgular').orderBy('tarih','desc').onSnapshot(s => {
     kurgular = s.docs.map(d => ({id:d.id,...d.data()}));
     renderKurgular(); renderDash();
   });
-  db.collection('paketler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
+  db.collection('cemal_paketler').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     paketler = s.docs.map(d => ({id:d.id,...d.data()}));
     renderPaketler();
   });
-  db.collection('kultur_yolu').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
+  db.collection('cemal_kultur_yolu').orderBy('olusturma_tarihi','desc').onSnapshot(s => {
     kulturYolu = s.docs.map(d => ({id:d.id,...d.data()}));
     renderKulturYolu();
   });
@@ -989,7 +989,7 @@ function openMusteriActions(id) {
 
 async function setMusteriOdeme(id, durum) {
   const key = mKey(musY, musM);
-  try { await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum }); }
+  try { await db.collection('cemal_musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum }); }
   catch(e) { alert('Hata: '+e.message); }
 }
 
@@ -1045,7 +1045,7 @@ async function saveKismiOdeme(id, ucret) {
   const durum = val >= ucret ? 'odendi' : 'kismi';
   const key   = mKey(musY, musM);
   try {
-    await db.collection('musteriler').doc(id).update({
+    await db.collection('cemal_musteriler').doc(id).update({
       [`odeme_gecmisi.${key}.durum`]:  durum,
       [`odeme_gecmisi.${key}.odenen`]: val
     });
@@ -1335,7 +1335,7 @@ async function updateGunSayisi(id, delta) {
   const item = kulturYolu.find(k=>k.id===id);
   if (!item) return;
   const yeni = Math.max(0, (item.gun_sayisi||0) + delta);
-  try { await db.collection('kultur_yolu').doc(id).update({gun_sayisi:yeni}); }
+  try { await db.collection('cemal_kultur_yolu').doc(id).update({gun_sayisi:yeni}); }
   catch(e) { alert('Hata: '+e.message); }
 }
 async function saveKulturYolu(e) {
