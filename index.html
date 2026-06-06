@@ -694,23 +694,27 @@ async function saveCekim(e) {
 
   await doSave('cekimler', cekimDoc, e);
 
-  // Otomatik gelir girişi oluştur
+  // Otomatik gelir girişi — her güncellemede eski kaydı sil, yenisini ekle
   try {
-    if (odemeDurumu === 'odendi' && eskiDurum !== 'odendi') {
-      // Tam ödeme — tüm ücret gelir olarak ekle
-      const ref1 = await db.collection('gelir_gider').add({
+    // Var olan otomatik gelir kayıtlarını sil
+    if (editId) {
+      const old = await db.collection('gelir_gider').where('cekim_ref','==',editId).get();
+      await Promise.all(old.docs.map(d => d.ref.delete()));
+    }
+
+    // Yeni duruma göre gelir kaydı ekle
+    if (odemeDurumu === 'odendi') {
+      await db.collection('gelir_gider').add({
         tip: 'gelir', kategori: 'Çekim Ücreti',
         tutar: ucret,
         aciklama: musteri + ' — çekim ücreti (otomatik)',
         tarih, cekim_ref: editId || null,
         olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
       });
-    } else if (odemeDurumu === 'kismi' && odenen > eskiOdenen) {
-      // Kısmi ödeme — yeni eklenen fark kadar gelir ekle
-      const fark = odenen - eskiOdenen;
+    } else if (odemeDurumu === 'kismi' && odenen > 0) {
       await db.collection('gelir_gider').add({
         tip: 'gelir', kategori: 'Çekim Ücreti (Kısmi)',
-        tutar: fark,
+        tutar: odenen,
         aciklama: musteri + ' — kısmi ödeme (otomatik)',
         tarih, cekim_ref: editId || null,
         olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
@@ -963,14 +967,17 @@ async function setMusteriOdeme(id, durum) {
   const m = musteriler.find(x => x.id === id);
   try {
     await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum });
-    // Gelir kaydı — sadece odendi olunca ekle
-    if (durum === 'odendi' && m) {
-      const eskiDurum = m.odeme_gecmisi?.[key]?.durum || 'bekliyor';
-      if (eskiDurum !== 'odendi') {
+    // Gelir kaydı — sadece odendi olunca ekle, eski kaydı önce sil
+    if (m) {
+      const oldGelir = await db.collection('gelir_gider')
+        .where('musteri_ref','==',id).where('ay_key','==',key).get();
+      await Promise.all(oldGelir.docs.map(d => d.ref.delete()));
+      if (durum === 'odendi') {
         const ucret = m.ucret || 0;
         await db.collection('gelir_gider').add({
           tip: 'gelir', kategori: 'Sabit Müşteri',
           tutar: ucret,
+          musteri_ref: id, ay_key: key,
           aciklama: m.isim + ' — ' + MONTHS[musM] + ' ' + musY + ' (otomatik)',
           tarih: firebase.firestore.Timestamp.fromDate(new Date(musY, musM, 1)),
           olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1030,13 +1037,16 @@ async function saveKismiOdeme(id, ucret) {
       [`odeme_gecmisi.${key}.durum`]:  durum,
       [`odeme_gecmisi.${key}.odenen`]: val
     });
-    // Gelir kaydı — yeni gelen tutar kadar ekle
-    const fark = val - eskiOdenen;
-    if (fark > 0 && m) {
+    // Gelir kaydı — eski otomatik kaydı sil, yenisini ekle
+    const oldGelir = await db.collection('gelir_gider')
+      .where('musteri_ref','==',id).where('ay_key','==',key).get();
+    await Promise.all(oldGelir.docs.map(d => d.ref.delete()));
+    if (val > 0 && m) {
       await db.collection('gelir_gider').add({
         tip: 'gelir',
         kategori: durum === 'odendi' ? 'Sabit Müşteri' : 'Sabit Müşteri (Kısmi)',
-        tutar: fark,
+        tutar: val,
+        musteri_ref: id, ay_key: key,
         aciklama: m.isim + ' — ' + MONTHS[musM] + ' ' + musY + ' (otomatik)',
         tarih: firebase.firestore.Timestamp.fromDate(new Date(musY, musM, 1)),
         olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1224,14 +1234,7 @@ async function doDelete() {
           .where('cekim_ref', '==', delId).get();
         const batch = db.batch();
         snap.forEach(d => batch.delete(d.ref));
-        // cekim_ref olmayan eski kayıtlar için aciklama ile bul
-        const snap2 = await db.collection('gelir_gider')
-          .where('aciklama', '>=', cekim.musteri + ' —')
-          .where('aciklama', '<=', cekim.musteri + ' —').get();
-        snap2.forEach(d => {
-          if (d.data().aciklama?.includes('otomatik')) batch.delete(d.ref);
-        });
-        await batch.commit();
+           await batch.commit();
       }
     }
     await db.collection(delCol).doc(delId).delete();
