@@ -670,16 +670,50 @@ function toggleOdenen(v) {
 async function saveCekim(e) {
   e.preventDefault();
   const f = e.target;
-  await doSave('cekimler', {
-    musteri: f.musteri.value.trim(), telefon: f.telefon.value.trim(),
-    tarih: firebase.firestore.Timestamp.fromDate(new Date(f.tarih.value)),
+  const odemeDurumu = f.odeme_durumu.value;
+  const ucret       = parseFloat(f.ucret.value) || 0;
+  const odenen      = parseFloat(f.odenen?.value) || 0;
+  const musteri     = f.musteri.value.trim();
+  const tarih       = firebase.firestore.Timestamp.fromDate(new Date(f.tarih.value));
+
+  // Eski çekim verisini sakla (durum değişimini takip etmek için)
+  const eskiCekim = editId ? cekimler.find(c => c.id === editId) : null;
+  const eskiDurum = eskiCekim?.odeme_durumu || 'bekliyor';
+  const eskiOdenen = eskiCekim?.odenen || 0;
+
+  const cekimDoc = {
+    musteri, telefon: f.telefon.value.trim(), tarih,
     saat: f.saat.value, lokasyon: f.lokasyon.value.trim(),
-    ucret: parseFloat(f.ucret.value)||0,
-    kimler: f.kimler.value,
-    odeme_durumu: f.odeme_durumu.value,
-    odenen: parseFloat(f.odenen?.value)||0,
+    ucret, kimler: f.kimler.value,
+    odeme_durumu: odemeDurumu, odenen,
     notlar: f.notlar.value.trim(),
-  }, e);
+  };
+
+  await doSave('cekimler', cekimDoc, e);
+
+  // Otomatik gelir girişi oluştur
+  try {
+    if (odemeDurumu === 'odendi' && eskiDurum !== 'odendi') {
+      // Tam ödeme — tüm ücret gelir olarak ekle
+      await db.collection('gelir_gider').add({
+        tip: 'gelir', kategori: 'Çekim Ücreti',
+        tutar: ucret,
+        aciklama: musteri + ' — çekim ücreti (otomatik)',
+        tarih,
+        olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    } else if (odemeDurumu === 'kismi' && odenen > eskiOdenen) {
+      // Kısmi ödeme — yeni eklenen fark kadar gelir ekle
+      const fark = odenen - eskiOdenen;
+      await db.collection('gelir_gider').add({
+        tip: 'gelir', kategori: 'Çekim Ücreti (Kısmi)',
+        tutar: fark,
+        aciklama: musteri + ' — kısmi ödeme (otomatik)',
+        tarih,
+        olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+  } catch(err) { console.error('Gelir girişi hatası:', err); }
 }
 
 // ─────────────────────────────────────
