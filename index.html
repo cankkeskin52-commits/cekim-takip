@@ -89,7 +89,7 @@
     </svg>
   </div>
   <p class="font-bold text-slate-900 text-lg">CLENSMEDYA</p>
-  <p class="text-slate-400 text-xs mt-0.5">Yükleniyor… <span style="color:#4f46e5">v1.7</span></p>
+  <p class="text-slate-400 text-xs mt-0.5">Yükleniyor… <span style="color:#4f46e5">v1.8</span></p>
   <div class="spinner mt-5"></div>
 </div>
 
@@ -104,7 +104,7 @@
     </div>
     <button id="hdr-add" onclick="onAddClick()"
       class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-sm active:bg-brand-700 transition-colors"
-      title="v1.7">
+      title="v1.8">
       <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
       </svg>
@@ -698,11 +698,11 @@ async function saveCekim(e) {
   try {
     if (odemeDurumu === 'odendi' && eskiDurum !== 'odendi') {
       // Tam ödeme — tüm ücret gelir olarak ekle
-      await db.collection('gelir_gider').add({
+      const ref1 = await db.collection('gelir_gider').add({
         tip: 'gelir', kategori: 'Çekim Ücreti',
         tutar: ucret,
         aciklama: musteri + ' — çekim ücreti (otomatik)',
-        tarih,
+        tarih, cekim_ref: editId || null,
         olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
       });
     } else if (odemeDurumu === 'kismi' && odenen > eskiOdenen) {
@@ -712,7 +712,7 @@ async function saveCekim(e) {
         tip: 'gelir', kategori: 'Çekim Ücreti (Kısmi)',
         tutar: fark,
         aciklama: musteri + ' — kısmi ödeme (otomatik)',
-        tarih,
+        tarih, cekim_ref: editId || null,
         olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
       });
     }
@@ -1212,7 +1212,29 @@ function askDel(col,id,label) { delCol=col; delId=id; document.getElementById('d
 function closeDel()     { document.getElementById('del-modal').classList.add('hidden'); delCol=null; delId=null; }
 async function doDelete() {
   if (!delCol||!delId) return;
-  try { await db.collection(delCol).doc(delId).delete(); closeDel(); }
+  try {
+    // Çekim siliniyorsa ilgili otomatik gelir kayıtlarını da sil
+    if (delCol === 'cekimler') {
+      const cekim = cekimler.find(c => c.id === delId);
+      if (cekim && (cekim.odeme_durumu === 'odendi' || cekim.odeme_durumu === 'kismi')) {
+        // Bu çekime ait otomatik gelir kayıtlarını bul ve sil
+        const snap = await db.collection('gelir_gider')
+          .where('cekim_ref', '==', delId).get();
+        const batch = db.batch();
+        snap.forEach(d => batch.delete(d.ref));
+        // cekim_ref olmayan eski kayıtlar için aciklama ile bul
+        const snap2 = await db.collection('gelir_gider')
+          .where('aciklama', '>=', cekim.musteri + ' —')
+          .where('aciklama', '<=', cekim.musteri + ' —').get();
+        snap2.forEach(d => {
+          if (d.data().aciklama?.includes('otomatik')) batch.delete(d.ref);
+        });
+        await batch.commit();
+      }
+    }
+    await db.collection(delCol).doc(delId).delete();
+    closeDel();
+  }
   catch(err) { alert('Hata: '+err.message); }
 }
 
