@@ -492,6 +492,7 @@ function renderDash() {
              <p class="text-xs text-slate-400">${fmtShort(c.tarih)}${c.lokasyon?' · '+c.lokasyon:''}</p></div>
         <div class="text-right">
           <p class="text-sm font-bold text-slate-800">${tl(c.ucret)}</p>
+          ${c.odeme_durumu==='kismi'?`<p class="text-xs text-amber-500">Kalan: ${tl((c.ucret||0)-(c.odenen||0))}</p>`:''}
           <span class="text-xs px-2 py-0.5 rounded-full badge-${c.odeme_durumu}">${SL[c.odeme_durumu]}</span>
         </div>
       </div>`);
@@ -594,7 +595,7 @@ function renderCekimler() {
         <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
           <div>
             <p class="text-lg font-bold text-slate-900">${tl(c.ucret)}</p>
-            ${c.odeme_durumu==='kismi'?`<p class="text-xs text-blue-500">Ödenen: ${tl(c.odenen)}</p>`:''}
+            ${c.odeme_durumu==='kismi'?`<p class="text-xs text-blue-500">Ödenen: ${tl(c.odenen)}</p><p class="text-xs text-amber-500">Kalan: ${tl((c.ucret||0)-(c.odenen||0))}</p>`:''}
           </div>
           <button onclick="event.stopPropagation();askDel('cekimler','${c.id}','${esc(c.musteri)} çekimini')"
             class="p-2 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors">
