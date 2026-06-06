@@ -1263,16 +1263,24 @@ window.addEventListener('load', async () => {
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(()=>{});
   }
 
-  // iOS PWA güncelleme kontrolü
+  // Güncelleme kontrolü — her açılışta version.json kontrol et, farklıysa yenile
   fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
     .then(r => r.json())
     .then(d => {
       const stored = localStorage.getItem('ct_app_ver');
-      if (stored && stored !== String(d.v)) {
-        localStorage.setItem('ct_app_ver', String(d.v));
-        window.location.href = window.location.href.split('?')[0] + '?v=' + d.v;
-      } else {
-        localStorage.setItem('ct_app_ver', String(d.v));
+      localStorage.setItem('ct_app_ver', String(d.v));
+      if (stored !== String(d.v)) {
+        // SW varsa önce onu güncelle, sonra sayfayı yenile
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) reg.update().then(() => {
+              window.location.href = window.location.href.split('?')[0] + '?v=' + d.v;
+            });
+            else window.location.href = window.location.href.split('?')[0] + '?v=' + d.v;
+          });
+        } else {
+          window.location.href = window.location.href.split('?')[0] + '?v=' + d.v;
+        }
       }
     }).catch(() => {});
 });

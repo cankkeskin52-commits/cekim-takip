@@ -1,5 +1,5 @@
 // SW v2 — HTML asla cache'lenmez, her açılışta network'ten alınır
-const CACHE = 'ct-v2';
+const CACHE = 'ct-v3';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
