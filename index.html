@@ -1197,7 +1197,22 @@ window.addEventListener('load', async () => {
   await new Promise(r => setTimeout(r,500));
   hide('loading-screen'); show('app');
   listen(); goTo('dashboard');
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(()=>{});
+  }
+
+  // iOS PWA güncelleme kontrolü
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(d => {
+      const stored = localStorage.getItem('ct_app_ver');
+      if (stored && stored !== String(d.v)) {
+        localStorage.setItem('ct_app_ver', String(d.v));
+        window.location.href = window.location.href.split('?')[0] + '?v=' + d.v;
+      } else {
+        localStorage.setItem('ct_app_ver', String(d.v));
+      }
+    }).catch(() => {});
 });
 </script>
 </body>
