@@ -86,7 +86,7 @@
     </svg>
   </div>
   <p class="font-bold text-slate-900 text-lg">CLENSMEDYA</p>
-  <p class="text-slate-400 text-xs mt-0.5">Yükleniyor… <span style="color:#4f46e5">v1.6</span></p>
+  <p class="text-slate-400 text-xs mt-0.5">Yükleniyor… <span style="color:#4f46e5">v1.7</span></p>
   <div class="spinner mt-5"></div>
 </div>
 
@@ -101,7 +101,7 @@
     </div>
     <button id="hdr-add" onclick="onAddClick()"
       class="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-sm active:bg-brand-700 transition-colors"
-      title="v1.6">
+      title="v1.7">
       <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
       </svg>
@@ -955,8 +955,24 @@ function openMusteriActions(id) {
 
 async function setMusteriOdeme(id, durum) {
   const key = mKey(musY, musM);
-  try { await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum }); }
-  catch(e) { alert('Hata: '+e.message); }
+  const m = musteriler.find(x => x.id === id);
+  try {
+    await db.collection('musteriler').doc(id).update({ [`odeme_gecmisi.${key}.durum`]: durum });
+    // Gelir kaydı — sadece odendi olunca ekle
+    if (durum === 'odendi' && m) {
+      const eskiDurum = m.odeme_gecmisi?.[key]?.durum || 'bekliyor';
+      if (eskiDurum !== 'odendi') {
+        const ucret = m.ucret || 0;
+        await db.collection('gelir_gider').add({
+          tip: 'gelir', kategori: 'Sabit Müşteri',
+          tutar: ucret,
+          aciklama: m.isim + ' — ' + MONTHS[musM] + ' ' + musY + ' (otomatik)',
+          tarih: firebase.firestore.Timestamp.fromDate(new Date(musY, musM, 1)),
+          olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    }
+  } catch(e) { alert('Hata: '+e.message); }
 }
 
 function openKismiOdemeForm(id) {
@@ -1001,11 +1017,26 @@ async function saveKismiOdeme(id, ucret) {
   const val   = parseFloat(document.getElementById('kismi-inp').value) || 0;
   const durum = val >= ucret ? 'odendi' : 'kismi';
   const key   = mKey(musY, musM);
+  const m     = musteriler.find(x => x.id === id);
+  const eskiOdenen = m?.odeme_gecmisi?.[key]?.odenen || 0;
+  const eskiDurum  = m?.odeme_gecmisi?.[key]?.durum  || 'bekliyor';
   try {
     await db.collection('musteriler').doc(id).update({
       [`odeme_gecmisi.${key}.durum`]:  durum,
       [`odeme_gecmisi.${key}.odenen`]: val
     });
+    // Gelir kaydı — yeni gelen tutar kadar ekle
+    const fark = val - eskiOdenen;
+    if (fark > 0 && m) {
+      await db.collection('gelir_gider').add({
+        tip: 'gelir',
+        kategori: durum === 'odendi' ? 'Sabit Müşteri' : 'Sabit Müşteri (Kısmi)',
+        tutar: fark,
+        aciklama: m.isim + ' — ' + MONTHS[musM] + ' ' + musY + ' (otomatik)',
+        tarih: firebase.firestore.Timestamp.fromDate(new Date(musY, musM, 1)),
+        olusturma_tarihi: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }
     closeModal();
   } catch(e) { alert('Hata: '+e.message); }
 }
